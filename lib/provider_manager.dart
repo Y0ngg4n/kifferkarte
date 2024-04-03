@@ -15,7 +15,6 @@ class PoiNotifier extends StateNotifier<List<Poi>> {
   }
 
   Future<void> getPois() async {
-    print(mapController.camera.zoom);
     if (mapController.camera.zoom < 13) {
       state = [];
       return;
@@ -42,6 +41,24 @@ class PoiNotifier extends StateNotifier<List<Poi>> {
   getState() => state;
 }
 
+class InCircleNotifier extends StateNotifier<bool> {
+  InCircleNotifier() : super(false);
+
+  void init() {
+    state = false;
+  }
+
+  void set(bool value) {
+    state = value;
+  }
+
+  getState() => state;
+}
+
 final poiProvider = StateNotifierProvider<PoiNotifier, List<Poi>>((ref) {
   return PoiNotifier();
+});
+
+final inCircleProvider = StateNotifierProvider<InCircleNotifier, bool>((ref) {
+  return InCircleNotifier();
 });
