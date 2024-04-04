@@ -13,6 +13,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:kifferkarte/location_manager.dart';
 import 'package:kifferkarte/overpass.dart';
 import 'package:kifferkarte/provider_manager.dart';
+import 'package:kifferkarte/search.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:path_provider/path_provider.dart';
@@ -28,6 +29,8 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
   LocationManager locationManager = LocationManager();
   CacheStore _cacheStore = MemCacheStore();
   final _dio = Dio();
+  List<Marker> marker = [];
+  List<CircleMarker> circles = [];
 
   @override
   void initState() {
@@ -60,41 +63,48 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
     });
   }
 
-  List<Marker> getPoiMarker(List<Poi> elements) {
-    return elements
-        .map((e) => Marker(
+  void getPoiMarker(List<Poi> elements) {
+    setState(() {
+      marker = elements
+          .where((element) =>
+              element.poiElement.lat != null && element.poiElement.lon != null)
+          .map((e) => Marker(
+                // Experimentation
+                // anchorPos: AnchorPos.exactly(Anchor(40, 30)),
+                point: LatLng(e.poiElement.lat!, e.poiElement.lon!),
+                width: 80,
+                height: 80,
+
+                child: Icon(
+                  Icons.location_pin,
+                  size: 25,
+                  color: Colors.black,
+                ),
+              ))
+          .toList();
+    });
+  }
+
+  void getCircles(List<Poi> elements) {
+    setState(() {
+      circles = elements
+          .where((element) =>
+              element.poiElement.lat != null && element.poiElement.lon != null)
+          .map((e) => CircleMarker(
               // Experimentation
               // anchorPos: AnchorPos.exactly(Anchor(40, 30)),
               point: LatLng(e.poiElement.lat!, e.poiElement.lon!),
-              width: 80,
-              height: 80,
-
-              child: Icon(
-                Icons.location_pin,
-                size: 25,
-                color: Colors.black,
-              ),
-            ))
-        .toList();
-  }
-
-  List<CircleMarker> getCircles(List<Poi> elements) {
-    return elements
-        .map((e) => CircleMarker(
-            // Experimentation
-            // anchorPos: AnchorPos.exactly(Anchor(40, 30)),
-            point: LatLng(e.poiElement.lat!, e.poiElement.lon!),
-            color: Colors.red.withOpacity(0.5),
-            borderColor: Colors.red,
-            borderStrokeWidth: 3,
-            radius: 100,
-            useRadiusInMeter: true))
-        .toList();
+              color: Colors.red.withOpacity(0.5),
+              borderColor: Colors.red,
+              borderStrokeWidth: 3,
+              radius: 100,
+              useRadiusInMeter: true))
+          .toList();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    List<Poi> pois = ref.watch(poiProvider);
     return Stack(
       children: [
         FlutterMap(
@@ -104,9 +114,7 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
                   maxZoom: 19,
                   minZoom: 0,
                   userAgentPackageName: "pro.obco.kifferkarte",
-                  urlTemplate:
-                      'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-                  subdomains: const ['a', 'b', 'c'],
+                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                   tileProvider: CachedTileProvider(
                       dio: _dio,
                       // maxStale keeps the tile cached for the given Duration and
@@ -118,9 +126,9 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
                 alignDirectionOnUpdate: AlignOnUpdate.once,
               ),
               MarkerLayer(
-                markers: getPoiMarker(pois),
+                markers: marker,
               ),
-              CircleLayer(circles: getCircles(pois)),
+              CircleLayer(circles: circles),
               RichAttributionWidget(
                 animationConfig:
                     const ScaleRAWA(), // Or `FadeRAWA` as is default
@@ -136,11 +144,11 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
             options: MapOptions(
               maxZoom: 19,
               minZoom: 0,
-              onPositionChanged: (event, point) {
-                ref.read(poiProvider.notifier).getPois();
-              },
-              onPointerUp: (event, point) {
-                ref.read(poiProvider.notifier).getPois();
+              onPointerUp: (event, point) async {
+                await ref.read(poiProvider.notifier).getPois();
+                var pois = await ref.read(poiProvider.notifier).getState();
+                getPoiMarker(pois);
+                getCircles(pois);
               },
             )),
         Positioned(
@@ -161,7 +169,7 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
             bottom: 80,
             right: 10,
             child: FloatingActionButton(
-              heroTag: "myLocation",
+              heroTag: "vibrate",
               child: Icon(locationManager.listeningToPosition
                   ? (Icons.smartphone)
                   : (Icons.vibration)),
@@ -173,6 +181,42 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
                 }
               },
             )),
+        Positioned(
+            top: 10,
+            right: 10,
+            child: FloatingActionButton(
+              heroTag: "zoomUp",
+              child: Icon(Icons.add),
+              onPressed: () {
+                mapController.move(
+                    mapController.camera.center, mapController.camera.zoom + 1);
+              },
+            )),
+        Positioned(
+            top: 80,
+            right: 10,
+            child: FloatingActionButton(
+              heroTag: "zoomDown",
+              child: Icon(Icons.remove),
+              onPressed: () {
+                mapController.move(
+                    mapController.camera.center, mapController.camera.zoom - 1);
+              },
+            )),
+        Positioned(
+            top: 10,
+            left: 10,
+            child: FloatingActionButton(
+              heroTag: "Search",
+              child: const Icon(Icons.search),
+              onPressed: () {
+                Navigator.of(context).push(MaterialPageRoute(
+                  builder: (context) => SearchView(
+                    locationManager: locationManager,
+                  ),
+                ));
+              },
+            ))
       ],
     );
   }

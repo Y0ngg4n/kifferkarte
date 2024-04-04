@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter_map/flutter_map.dart';
+import 'package:kifferkarte/nomatim.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:http/http.dart' as http;
 
@@ -37,8 +38,9 @@ class Overpass {
       "[community_centre=youth_centre]",
       "[amenity=childcare]",
       "[name~'Jugendherberge']",
-      "[amenity=social_facility][childcare=yes]",
-      "[amenity=social_facility][juvenile=yes]",
+      "[amenity=social_facility][\"social_facility:for\"=\"child\"]",
+      "[amenity=social_facility][\"social_facility:for\"=\"childcare\"]",
+      "[amenity=social_facility][\"social_facility:for\"=\"juvenile\"]",
       "[leisure=pitch]",
       "[leisure=sports_hall]",
       "[leisure=sports_centre]",
@@ -49,15 +51,20 @@ class Overpass {
       "[leisure=water_park]",
       "[leisure=golf_course]"
     ];
-
+    Distance distance = Distance();
+    // LatLng northWest = latLngBounds.northWest;
+    // LatLng southEast = latLngBounds.southEast;
+    // northWest = distance.offset(northWest, 100, 315);
+    // southEast = distance.offset(northWest, 100, 45);
+    // latLngBounds = LatLngBounds(northWest, southEast);
     String body = "[out:json][timeout:20][maxsize:536870912];\(";
     // Generate Overpass queries for each tag
     tags.forEach((value) {
       body += '''
-      node$value(${latLngBounds.south},${latLngBounds.west},${latLngBounds.north},${latLngBounds.east});
+      nwr${value}(${latLngBounds!.south},${latLngBounds.west},${latLngBounds.north},${latLngBounds.east});
       ''';
     });
-    body += "\);out;";
+    body += "\);(._;>;);out;";
     print(body);
     http.Response response = await http.post(Uri.parse(overpassUrl),
         headers: {"charset": "utf-8"}, body: body);
@@ -91,6 +98,7 @@ class Overpass {
 class Poi {
   PoiElement poiElement;
   Building? building;
+  NomatimLookupElement? nomatimLookupElement;
 
   Poi(this.poiElement);
 }
@@ -105,20 +113,15 @@ class Building {
 class OverpassResponse {
   double version;
   String generator;
-  Map<String, dynamic> osm3s;
   List<PoiElement> elements;
 
   OverpassResponse(
-      {required this.version,
-      required this.generator,
-      required this.osm3s,
-      required this.elements});
+      {required this.version, required this.generator, required this.elements});
 
   factory OverpassResponse.fromJson(Map<String, dynamic> json) {
     return OverpassResponse(
         version: json['version'],
         generator: json['generator'],
-        osm3s: json['osm3s'],
         elements: json['elements']
             .map((e) => PoiElement.fromJson(e))
             .toList()

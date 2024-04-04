@@ -1,0 +1,88 @@
+{
+  description = "moxplatform";
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/23.11";
+    nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    flake-utils.url = "github:numtide/flake-utils";
+    android-nixpkgs.url = "github:tadfisher/android-nixpkgs";
+  };
+  outputs = { self, nixpkgs, nixpkgs-unstable, flake-utils, android-nixpkgs }:
+    flake-utils.lib.eachDefaultSystem (system:
+      let
+        pkgs = import nixpkgs {
+          inherit system;
+          config = {
+            android_sdk.accept_license = true;
+            allowUnfree = true;
+          };
+        };
+
+        unstable = import nixpkgs-unstable {
+          inherit system;
+          config = {
+            android_sdk.accept_license = true;
+            allowUnfree = true;
+          };
+        };
+        # Everything to make Flutter happy
+        sdk = android-nixpkgs.sdk.${system} (sdkPkgs:
+          with sdkPkgs; [
+            cmdline-tools-latest
+            build-tools-30-0-3
+            build-tools-33-0-2
+            build-tools-34-0-0
+            platform-tools
+            emulator
+            #      patcher-v4
+            platforms-android-30
+            platforms-android-31
+            platforms-android-33
+          ]);
+        pinnedJDK = pkgs.jdk17;
+      in {
+        devShell = pkgs.mkShell {
+          buildInputs = [
+            # Android
+            pinnedJDK
+
+            sdk
+
+            # Flutter
+            unstable.flutter
+            unstable.dart
+            # Code hygiene
+            pkgs.gitlint
+
+            # Flutter dependencies for linux desktop
+            pkgs.atk
+            pkgs.cairo
+            pkgs.clang
+            pkgs.cmake
+            pkgs.epoxy
+            pkgs.gdk-pixbuf
+            pkgs.glib
+            pkgs.gtk3
+            pkgs.harfbuzz
+            pkgs.ninja
+            pkgs.pango
+            pkgs.pcre
+            pkgs.pkg-config
+            pkgs.xorg.libX11
+            pkgs.xorg.xorgproto
+          ];
+
+          # Make Flutter build on desktop
+          #CPATH = "${pkgs.xorg.libX11.dev}/include:${pkgs.xorg.xorgproto}/include";
+          # LD_LIBRARY_PATH = with pkgs; lib.makeLibraryPath [ atk cairo epoxy gdk-pixbuf glib gtk3 harfbuzz pango ];
+
+          ANDROID_HOME = "${sdk}/share/android-sdk";
+          ANDROID_SDK_ROOT = "${sdk}/share/android-sdk";
+          JAVA_HOME = pinnedJDK;
+
+          # Fix an issue with Flutter using an older version of aapt2, which does not know
+          # an used parameter.
+          GRADLE_OPTS =
+            "-Dorg.gradle.project.android.aapt2FromMavenOverride=${sdk}/share/android-sdk/build-tools/34.0.0/aapt2";
+        };
+      });
+}

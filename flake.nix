@@ -3,11 +3,10 @@
   inputs = {
     # nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     nixpkgs.url = "github:NixOS/nixpkgs/23.11";
-    unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     flake-utils.url = "github:numtide/flake-utils";
     android-nixpkgs.url = "github:tadfisher/android-nixpkgs";
   };
-  outputs = { self, nixpkgs, unstable, flake-utils, android-nixpkgs }: flake-utils.lib.eachDefaultSystem (system: let
+  outputs = { self, nixpkgs, flake-utils, android-nixpkgs }: flake-utils.lib.eachDefaultSystem (system: let
     pkgs = import nixpkgs {
       inherit system;
       config = {
@@ -35,13 +34,11 @@
         # Android
         pinnedJDK
         sdk
-
         # Flutter
-        flutter
+        flutter 
         dart
         # Code hygiene
         gitlint
-
         # Flutter dependencies for linux desktop
         atk
         cairo
@@ -58,7 +55,7 @@
         pkg-config
         xorg.libX11
         xorg.xorgproto
-     ];
+      ];
 
       # Make Flutter build on desktop
       #CPATH = "${pkgs.xorg.libX11.dev}/include:${pkgs.xorg.xorgproto}/include";

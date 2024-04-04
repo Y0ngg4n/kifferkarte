@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:kifferkarte/map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:drift/drift.dart';
+import 'package:kifferkarte/rules.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -78,6 +79,7 @@ class _KifferkarteWidgetState extends State<KifferkarteWidget> {
         // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
       ),
+      bottomSheet: const Rules(),
       body: MapWidget(),
     );
   }
