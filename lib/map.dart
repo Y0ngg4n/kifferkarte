@@ -5,6 +5,7 @@ import 'dart:math';
 import 'package:dio/dio.dart';
 import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
 import 'package:dio_cache_interceptor_db_store/dio_cache_interceptor_db_store.dart';
+import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -19,6 +20,7 @@ import 'package:kifferkarte/search.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:polybool/polybool.dart' as polybool;
 
 const double radius = 100.0;
 
@@ -62,9 +64,9 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
     await ref.read(wayProvider.notifier).getWays();
     var pois = await ref.read(poiProvider.notifier).getState();
     var ways = await ref.read(wayProvider.notifier).getState();
+    getWays(ways);
     getPoiMarker(pois);
     getCircles(pois);
-    getWays(ways);
   }
 
   Future<void> getWays(List<Way> elements) async {
@@ -111,67 +113,100 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
     });
   }
 
-  void getCircles(List<Poi> elements) {
-    List<CircleMarker> newCircles = [];
-
-    for (Poi poi in elements) {
-      if (poi.poiElement.lat == null || poi.poiElement.lon == null) continue;
-      bool intersection = false;
-      List<Poi> intersecting = [];
-      for (Poi poi2 in elements) {
-        Distance distance = new Distance();
-        if (distance.as(
-                LengthUnit.Meter,
-                LatLng(poi.poiElement.lat!, poi.poiElement.lon!),
-                LatLng(poi.poiElement.lat!, poi.poiElement.lon!)) <=
-            radius) {
-          intersecting.add(poi2);
-        }
-      }
-    }
-    setState(() {
-      circles = elements
-          .where((element) =>
-              element.poiElement.lat != null && element.poiElement.lon != null)
-          .map((e) => CircleMarker(
-              // Experimentation
-              // anchorPos: AnchorPos.exactly(Anchor(40, 30)),
-              point: LatLng(e.poiElement.lat!, e.poiElement.lon!),
-              color: Colors.red.withOpacity(0.25),
-              borderColor: Colors.red,
-              borderStrokeWidth: 3,
-              radius: radius,
-              useRadiusInMeter: true))
-          .toList();
-    });
-  }
-
-  // https://github.com/bcalik/php-circle-to-polygon/blob/master/CircleToPolygon.php
-  void circleToPolygon(LatLng center, double radius, int numberOfSegments) {
-    List<LatLng> coordinates = [];
-    for (int i = 0; i < numberOfSegments; i++) {
-      coordinates.add(offset(center, radius, 2 * pi * i / numberOfSegments));
-    }
-  }
-
   double toRadians(double degree) {
     return degree * pi / 180;
   }
 
   double toDegrees(double degree) {
-    return degree * pi / 180;
+    return degree * 180 / pi;
   }
 
   LatLng offset(LatLng center, double radius, double bearing) {
-    double lat = toRadians(center.latitude);
-    double lon = toRadians(center.longitude);
+    double lat1 = toRadians(center.latitude);
+    double lon1 = toRadians(center.longitude);
     double dByR = radius /
         6378137; // distance divided by 6378137 (radius of the earth) wgs84
-    lat = asin(sin(lat) * cos(dByR) + cos(lat) * cos(dByR) * cos(bearing));
-    lon = lon +
-        atan2(sin(bearing) * sin(dByR) * cos(lat),
-            cos(dByR) - sin(lat) * sin(lat));
-    return LatLng(toDegrees(lat), toDegrees(lon));
+    var lat =
+        asin(sin(lat1) * cos(dByR) + cos(lat1) * sin(dByR) * cos(bearing));
+    var lon = lon1 +
+        atan2(sin(bearing) * sin(dByR) * cos(lat1),
+            cos(dByR) - sin(lat1) * sin(lat));
+    var offset = LatLng(toDegrees(lat), toDegrees(lon));
+    return offset;
+  }
+
+  // https://github.com/bcalik/php-circle-to-polygon/blob/master/CircleToPolygon.php
+  List<LatLng> circleToPolygon(
+      LatLng center, double radius, int numberOfSegments) {
+    List<LatLng> coordinates = [];
+    for (int i = 0; i < numberOfSegments; i++) {
+      coordinates.add(offset(center, radius, 2 * pi * i / numberOfSegments));
+    }
+    return coordinates;
+  }
+
+  void getCircles(List<Poi> elements) {
+    Map<LatLng, CircleMarker> circleMarker = Map();
+    for (Poi poi in elements) {
+      if (poi.poiElement.lat == null || poi.poiElement.lon == null) continue;
+      LatLng position = LatLng(poi.poiElement.lat!, poi.poiElement.lon!);
+      circleMarker[position] = CircleMarker(
+          // Experimentation
+          // anchorPos: AnchorPos.exactly(Anchor(40, 30)),
+          point: position,
+          color: Colors.red.withOpacity(0.25),
+          borderColor: Colors.red,
+          borderStrokeWidth: 3,
+          radius: radius,
+          useRadiusInMeter: true);
+    }
+    for (Poi poi in elements) {
+      if (poi.poiElement.lat == null || poi.poiElement.lon == null) continue;
+      bool intersection = false;
+      List<polybool.Polygon> intersecting = [];
+      polybool.Polygon? unitedPoly;
+      for (Poi poi2 in elements) {
+        if (poi2.poiElement.lat == null || poi2.poiElement.lon == null)
+          continue;
+        LatLng position = LatLng(poi.poiElement.lat!, poi.poiElement.lon!);
+        Distance distance = new Distance();
+        if (distance.as(LengthUnit.Meter, position,
+                LatLng(poi.poiElement.lat!, poi.poiElement.lon!)) <=
+            radius) {
+          List<LatLng> points = circleToPolygon(position, radius, 32);
+          circleMarker.remove(position);
+          intersecting.add(polybool.Polygon(regions: [
+            points
+                .map((e) => polybool.Coordinate(e.latitude, e.longitude))
+                .toList()
+          ]));
+        }
+      }
+      if (intersecting.length > 1) {
+        for (int i = 0; i < intersecting.length; i++) {
+          if (unitedPoly == null) {
+            unitedPoly = intersecting[i];
+          } else {
+            print(unitedPoly!.regions.first);
+            unitedPoly = unitedPoly.union(intersecting[i]);
+          }
+        }
+      }
+      if (unitedPoly != null) {
+        setState(() {
+          polys.add(Polygon(
+              points: unitedPoly!.regions.first
+                  .map((e) => LatLng(e.x, e.y))
+                  .toList(),
+              color: Colors.red.withOpacity(0.25),
+              borderStrokeWidth: 3,
+              isFilled: true));
+        });
+      }
+    }
+    setState(() {
+      circles = circleMarker.values.toList();
+    });
   }
 
   @override
