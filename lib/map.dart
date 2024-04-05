@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:dio/dio.dart';
 import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
@@ -18,6 +19,8 @@ import 'package:kifferkarte/search.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:path_provider/path_provider.dart';
+
+const double radius = 100.0;
 
 class MapWidget extends ConsumerStatefulWidget {
   MapWidget({super.key});
@@ -109,6 +112,23 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
   }
 
   void getCircles(List<Poi> elements) {
+    List<CircleMarker> newCircles = [];
+
+    for (Poi poi in elements) {
+      if (poi.poiElement.lat == null || poi.poiElement.lon == null) continue;
+      bool intersection = false;
+      List<Poi> intersecting = [];
+      for (Poi poi2 in elements) {
+        Distance distance = new Distance();
+        if (distance.as(
+                LengthUnit.Meter,
+                LatLng(poi.poiElement.lat!, poi.poiElement.lon!),
+                LatLng(poi.poiElement.lat!, poi.poiElement.lon!)) <=
+            radius) {
+          intersecting.add(poi2);
+        }
+      }
+    }
     setState(() {
       circles = elements
           .where((element) =>
@@ -120,10 +140,38 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
               color: Colors.red.withOpacity(0.25),
               borderColor: Colors.red,
               borderStrokeWidth: 3,
-              radius: 100,
+              radius: radius,
               useRadiusInMeter: true))
           .toList();
     });
+  }
+
+  // https://github.com/bcalik/php-circle-to-polygon/blob/master/CircleToPolygon.php
+  void circleToPolygon(LatLng center, double radius, int numberOfSegments) {
+    List<LatLng> coordinates = [];
+    for (int i = 0; i < numberOfSegments; i++) {
+      coordinates.add(offset(center, radius, 2 * pi * i / numberOfSegments));
+    }
+  }
+
+  double toRadians(double degree) {
+    return degree * pi / 180;
+  }
+
+  double toDegrees(double degree) {
+    return degree * pi / 180;
+  }
+
+  LatLng offset(LatLng center, double radius, double bearing) {
+    double lat = toRadians(center.latitude);
+    double lon = toRadians(center.longitude);
+    double dByR = radius /
+        6378137; // distance divided by 6378137 (radius of the earth) wgs84
+    lat = asin(sin(lat) * cos(dByR) + cos(lat) * cos(dByR) * cos(bearing));
+    lon = lon +
+        atan2(sin(bearing) * sin(dByR) * cos(lat),
+            cos(dByR) - sin(lat) * sin(lat));
+    return LatLng(toDegrees(lat), toDegrees(lon));
   }
 
   @override

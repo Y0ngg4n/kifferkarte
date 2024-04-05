@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:kifferkarte/map.dart';
 import 'package:kifferkarte/overpass.dart';
 import 'package:kifferkarte/provider_manager.dart';
 import 'package:latlong2/latlong.dart';
@@ -136,7 +137,7 @@ class LocationManager {
                   LengthUnit.Meter,
                   LatLng(position.latitude, position.longitude),
                   LatLng(poi.poiElement.lat!, poi.poiElement.lon!)) <
-              100) {
+              radius) {
         inCircle = true;
       }
     }
