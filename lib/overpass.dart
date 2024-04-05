@@ -52,16 +52,20 @@ class Overpass {
       "[leisure=golf_course]"
     ];
     Distance distance = Distance();
-    // LatLng northWest = latLngBounds.northWest;
-    // LatLng southEast = latLngBounds.southEast;
-    // northWest = distance.offset(northWest, 100, 315);
-    // southEast = distance.offset(northWest, 100, 45);
-    // latLngBounds = LatLngBounds(northWest, southEast);
+    print(
+        "${latLngBounds!.south},${latLngBounds.west},${latLngBounds.north},${latLngBounds.east}");
+    LatLng northWest = latLngBounds.northWest;
+    LatLng southEast = latLngBounds.southEast;
+    northWest = distance.offset(northWest, 100, 315);
+    southEast = distance.offset(southEast, 100, 135);
+    latLngBounds = LatLngBounds(northWest, southEast);
+    print(
+        "${latLngBounds!.south},${latLngBounds.west},${latLngBounds.north},${latLngBounds.east}");
     String body = "[out:json][timeout:20][maxsize:536870912];\(";
     // Generate Overpass queries for each tag
     tags.forEach((value) {
       body += '''
-      nwr${value}(${latLngBounds!.south},${latLngBounds.west},${latLngBounds.north},${latLngBounds.east});
+      nw${value}(${latLngBounds!.south},${latLngBounds.west},${latLngBounds.north},${latLngBounds.east});
       ''';
     });
     body += "\);(._;>;);out;";
@@ -72,6 +76,24 @@ class Overpass {
       return OverpassResponse.fromJson(
           jsonDecode(utf8.decode(response.bodyBytes)));
     } else {
+      return null;
+    }
+  }
+
+  static Future<OverpassResponse?> getPedestrianWaysBoundariesInBounds(
+      LatLngBounds? latLngBounds) async {
+    if (latLngBounds == null) return null;
+    String body = "[out:json][timeout:20][maxsize:536870912];\n";
+    body +=
+        "way[highway=pedestrian](${latLngBounds.south}, ${latLngBounds.west},${latLngBounds.north}, ${latLngBounds.east});";
+    body += "(._;>;);out body;";
+    http.Response response = await http.post(Uri.parse(overpassUrl),
+        headers: {"charset": "utf-8"}, body: body);
+    if (response.statusCode == 200) {
+      return OverpassResponse.fromJson(
+          jsonDecode(utf8.decode(response.bodyBytes)));
+    } else {
+      print(response.body);
       return null;
     }
   }
@@ -108,6 +130,13 @@ class Building {
   List<LatLng> boundaries;
 
   Building(this.id, this.boundaries);
+}
+
+class Way {
+  int id;
+  List<LatLng> boundaries;
+
+  Way(this.id, this.boundaries);
 }
 
 class OverpassResponse {

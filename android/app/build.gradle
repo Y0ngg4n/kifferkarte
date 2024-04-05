@@ -1,3 +1,4 @@
+
 def localProperties = new Properties()
 def localPropertiesFile = rootProject.file('local.properties')
 if (localPropertiesFile.exists()) {
@@ -21,7 +22,6 @@ if (flutterVersionName == null) {
     flutterVersionName = '1.0'
 }
 
-
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
@@ -34,12 +34,6 @@ android {
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
-    }
-
-    externalNativeBuild {
-        cmake {
-            version "3.10.2"
-        }
     }
 
     kotlinOptions {
@@ -55,11 +49,10 @@ android {
         applicationId "pro.obco.kifferkarte"
         // You can update the following values to match your application needs.
         // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-gradle-build-configuration.
-        minSdkVersion flutter.minSdkVersion
+        minSdkVersion 20
         targetSdkVersion flutter.targetSdkVersion
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
-        multiDexEnabled true
     }
 
     buildTypes {
@@ -74,7 +67,7 @@ android {
 flutter {
     source '../..'
 }
+
 dependencies {
-  implementation "androidx.multidex:multidex:2.0.1"
-   implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 }

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
@@ -31,24 +32,46 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
   final _dio = Dio();
   List<Marker> marker = [];
   List<CircleMarker> circles = [];
-
+  List<Polygon> polys = [];
   @override
   void initState() {
     super.initState();
     LocationManager().determinePosition();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      mapController.move(LatLng(51.351, 10.591), 6);
       ref.read(poiProvider.notifier).getPois();
       if (kIsWeb)
         setState(() {
-          _cacheStore = DbCacheStore(
-            databasePath: '', // ignored on web
-            databaseName: 'DbCacheStore',
-          );
+          // _cacheStore = DbCacheStore(
+          //   databasePath: '', // ignored on web
+          //   databaseName: 'DbCacheStore',
+          // )
+          _cacheStore = MemCacheStore();
         });
       else {
         getNormalCache();
       }
+      mapController.move(const LatLng(51.351, 10.591), 6);
+    });
+  }
+
+  Future<void> update() async {
+    await ref.read(poiProvider.notifier).getPois();
+    await ref.read(wayProvider.notifier).getWays();
+    var pois = await ref.read(poiProvider.notifier).getState();
+    var ways = await ref.read(wayProvider.notifier).getState();
+    getPoiMarker(pois);
+    getCircles(pois);
+    getWays(ways);
+  }
+
+  Future<void> getWays(List<Way> elements) async {
+    setState(() {
+      polys = elements
+          .map((e) => Polygon(
+              points: e.boundaries,
+              color: Colors.yellow.withOpacity(0.5),
+              isFilled: true))
+          .toList();
     });
   }
 
@@ -75,7 +98,7 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
                 width: 80,
                 height: 80,
 
-                child: Icon(
+                child: const Icon(
                   Icons.location_pin,
                   size: 25,
                   color: Colors.black,
@@ -94,7 +117,7 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
               // Experimentation
               // anchorPos: AnchorPos.exactly(Anchor(40, 30)),
               point: LatLng(e.poiElement.lat!, e.poiElement.lon!),
-              color: Colors.red.withOpacity(0.5),
+              color: Colors.red.withOpacity(0.25),
               borderColor: Colors.red,
               borderStrokeWidth: 3,
               radius: 100,
@@ -122,8 +145,12 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
                       maxStale: const Duration(days: 30),
                       store: _cacheStore)),
               CurrentLocationLayer(
-                alignPositionOnUpdate: AlignOnUpdate.once,
-                alignDirectionOnUpdate: AlignOnUpdate.once,
+                alignPositionOnUpdate: AlignOnUpdate.always,
+                alignDirectionOnUpdate: AlignOnUpdate.always,
+              ),
+              PolygonLayer(
+                polygons: polys,
+                polygonCulling: true,
               ),
               MarkerLayer(
                 markers: marker,
@@ -145,28 +172,43 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
               maxZoom: 19,
               minZoom: 0,
               onPointerUp: (event, point) async {
-                await ref.read(poiProvider.notifier).getPois();
-                var pois = await ref.read(poiProvider.notifier).getState();
-                getPoiMarker(pois);
-                getCircles(pois);
+                await update();
               },
             )),
         Positioned(
-            bottom: 10,
+            bottom: 50,
             right: 10,
             child: FloatingActionButton(
               heroTag: "myLocation",
               child: const Icon(Icons.my_location),
               onPressed: () async {
-                Position? position = await locationManager.determinePosition();
-                if (position == null) return;
+                Position? position;
+                position = await locationManager.determinePosition().timeout(
+                  Duration(seconds: 5),
+                  onTimeout: () {
+                    position = locationManager.lastPosition;
+                  },
+                );
+                if (position == null) {
+                  print(locationManager.lastPosition);
+                  if (locationManager.lastPosition != null) {
+                    position = locationManager.lastPosition;
+                  } else {
+                    print("no position");
+                    ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text("Could ne get Position")));
+                    return;
+                  }
+                } else {
+                  print("yeah");
+                }
                 mapController.move(
-                    LatLng(position.latitude, position.longitude),
+                    LatLng(position!.latitude, position!.longitude),
                     mapController.camera.zoom);
               },
             )),
         Positioned(
-            bottom: 80,
+            bottom: 120,
             right: 10,
             child: FloatingActionButton(
               heroTag: "vibrate",
@@ -186,10 +228,11 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
             right: 10,
             child: FloatingActionButton(
               heroTag: "zoomUp",
-              child: Icon(Icons.add),
-              onPressed: () {
+              child: const Icon(Icons.add),
+              onPressed: () async {
                 mapController.move(
                     mapController.camera.center, mapController.camera.zoom + 1);
+                await update();
               },
             )),
         Positioned(
@@ -197,10 +240,12 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
             right: 10,
             child: FloatingActionButton(
               heroTag: "zoomDown",
-              child: Icon(Icons.remove),
-              onPressed: () {
+              child: const Icon(Icons.remove),
+              onPressed: () async {
                 mapController.move(
                     mapController.camera.center, mapController.camera.zoom - 1);
+
+                await update();
               },
             )),
         Positioned(

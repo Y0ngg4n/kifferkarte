@@ -53,6 +53,7 @@ dependencies:
   sqlite3_flutter_libs: ^0.5.20
   dio: ^5.4.2+1
   vibration: ^1.8.4
+  polybool: ^0.2.0
 
 dev_dependencies:
   flutter_test:

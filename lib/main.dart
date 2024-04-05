@@ -79,7 +79,11 @@ class _KifferkarteWidgetState extends State<KifferkarteWidget> {
         // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
       ),
-      bottomSheet: const Rules(),
+      bottomSheet: ExpansionTile(
+        initiallyExpanded: false,
+        title: Text("Gesetzliche Lage und Anwendung"),
+        children: [Rules()],
+      ),
       body: MapWidget(),
     );
   }
