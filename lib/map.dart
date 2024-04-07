@@ -160,9 +160,10 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
           radius: radius,
           useRadiusInMeter: true);
     }
+    List<Poi> intersected = [];
+    List<Polygon> unioned = [];
     for (Poi poi in elements) {
       if (poi.poiElement.lat == null || poi.poiElement.lon == null) continue;
-      bool intersection = false;
       List<polybool.Polygon> intersecting = [];
       polybool.Polygon? unitedPoly;
       for (Poi poi2 in elements) {
@@ -172,9 +173,10 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
         Distance distance = new Distance();
         if (distance.as(LengthUnit.Meter, position,
                 LatLng(poi.poiElement.lat!, poi.poiElement.lon!)) <=
-            radius) {
+            radius * 2) {
           List<LatLng> points = circleToPolygon(position, radius, 32);
           circleMarker.remove(position);
+          intersected.add(poi2);
           intersecting.add(polybool.Polygon(regions: [
             points
                 .map((e) => polybool.Coordinate(e.latitude, e.longitude))
@@ -182,30 +184,27 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
           ]));
         }
       }
-      if (intersecting.length > 1) {
-        for (int i = 0; i < intersecting.length; i++) {
-          if (unitedPoly == null) {
-            unitedPoly = intersecting[i];
-          } else {
-            print(unitedPoly!.regions.first);
-            unitedPoly = unitedPoly.union(intersecting[i]);
-          }
+      for (int i = 0; i < intersecting.length; i++) {
+        if (unitedPoly == null) {
+          unitedPoly = intersecting[i];
+        } else {
+          unitedPoly = unitedPoly.union(intersecting[i]);
         }
       }
-      if (unitedPoly != null) {
-        setState(() {
-          polys.add(Polygon(
-              points: unitedPoly!.regions.first
-                  .map((e) => LatLng(e.x, e.y))
-                  .toList(),
-              color: Colors.red.withOpacity(0.25),
-              borderStrokeWidth: 3,
-              isFilled: true));
-        });
+      if (unitedPoly != null && unitedPoly.regions.length > 0) {
+        unioned.add(Polygon(
+            points:
+                unitedPoly!.regions.first.map((e) => LatLng(e.x, e.y)).toList(),
+            color: Colors.red.withOpacity(0.25),
+            borderColor: Colors.red,
+            borderStrokeWidth: 3,
+            isFilled: true));
+        print("Poly");
       }
     }
     setState(() {
-      circles = circleMarker.values.toList();
+      circles = [];
+      // circles = circleMarker.values.toList();
     });
   }
 
