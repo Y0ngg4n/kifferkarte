@@ -147,6 +147,7 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
 
   void getCircles(List<Poi> elements) {
     Map<LatLng, CircleMarker> circleMarker = Map();
+    List<Polygon> polys = [];
     for (Poi poi in elements) {
       if (poi.poiElement.lat == null || poi.poiElement.lon == null) continue;
       LatLng position = LatLng(poi.poiElement.lat!, poi.poiElement.lon!);
@@ -154,56 +155,81 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
           // Experimentation
           // anchorPos: AnchorPos.exactly(Anchor(40, 30)),
           point: position,
-          color: Colors.red.withOpacity(0.25),
-          borderColor: Colors.red,
+          color: Colors.blue.withOpacity(0.25),
+          borderColor: Colors.blue,
           borderStrokeWidth: 3,
           radius: radius,
           useRadiusInMeter: true);
     }
-    List<Poi> intersected = [];
-    List<Polygon> unioned = [];
-    for (Poi poi in elements) {
-      if (poi.poiElement.lat == null || poi.poiElement.lon == null) continue;
-      List<polybool.Polygon> intersecting = [];
-      polybool.Polygon? unitedPoly;
-      for (Poi poi2 in elements) {
-        if (poi2.poiElement.lat == null || poi2.poiElement.lon == null)
-          continue;
-        LatLng position = LatLng(poi.poiElement.lat!, poi.poiElement.lon!);
+
+    Map<Poi, List<Poi>> polyMapping = new Map();
+    for (Poi currentElement in elements) {
+      for (Poi checkElement in elements) {
+        if (currentElement.poiElement.lat == null ||
+            currentElement.poiElement.lon == null ||
+            checkElement.poiElement.lat == null ||
+            checkElement.poiElement.lon == null) continue;
+        LatLng currentPosition = LatLng(
+            currentElement.poiElement.lat!, currentElement.poiElement.lon!);
+        LatLng checkPosition =
+            LatLng(checkElement.poiElement.lat!, checkElement.poiElement.lon!);
         Distance distance = new Distance();
-        if (distance.as(LengthUnit.Meter, position,
-                LatLng(poi.poiElement.lat!, poi.poiElement.lon!)) <=
+        if (distance.as(LengthUnit.Meter, currentPosition, checkPosition) <=
             radius * 2) {
-          List<LatLng> points = circleToPolygon(position, radius, 32);
-          circleMarker.remove(position);
-          intersected.add(poi2);
-          intersecting.add(polybool.Polygon(regions: [
-            points
-                .map((e) => polybool.Coordinate(e.latitude, e.longitude))
-                .toList()
-          ]));
+          bool isMapped = false;
+          for (List<Poi> mappedPois in polyMapping.values) {
+            if (mappedPois.contains(checkElement)) {
+              isMapped = true;
+            }
+          }
+
+          if (isMapped) continue;
+
+          if (!polyMapping.containsKey(currentElement)) {
+            polyMapping[currentElement] = [checkElement];
+          } else {
+            polyMapping[currentElement]!.add(checkElement);
+          }
         }
-      }
-      for (int i = 0; i < intersecting.length; i++) {
-        if (unitedPoly == null) {
-          unitedPoly = intersecting[i];
-        } else {
-          unitedPoly = unitedPoly.union(intersecting[i]);
-        }
-      }
-      if (unitedPoly != null && unitedPoly.regions.length > 0) {
-        unioned.add(Polygon(
-            points:
-                unitedPoly!.regions.first.map((e) => LatLng(e.x, e.y)).toList(),
-            color: Colors.red.withOpacity(0.25),
-            borderColor: Colors.red,
-            borderStrokeWidth: 3,
-            isFilled: true));
-        print("Poly");
       }
     }
+
+    for (var outerPoly in polyMapping.entries) {
+      if (outerPoly.key.poiElement.lat == null ||
+          outerPoly.key.poiElement.lon == null) continue;
+      LatLng position =
+          LatLng(outerPoly.key.poiElement.lat!, outerPoly.key.poiElement.lon!);
+      List<LatLng> points = circleToPolygon(position, radius, 32);
+      polybool.Polygon united = polybool.Polygon(regions: [
+        points.map((e) => polybool.Coordinate(e.latitude, e.longitude)).toList()
+      ]);
+      circleMarker.remove(position);
+      for (int i = 0; i < outerPoly.value.length; i++) {
+        LatLng innerPosition = LatLng(outerPoly.value[i].poiElement.lat!,
+            outerPoly.value[i].poiElement.lon!);
+        circleMarker.remove(innerPosition);
+        List<LatLng> innerPoints = circleToPolygon(innerPosition, radius, 32);
+        united = united.union(polybool.Polygon(regions: [
+          innerPoints
+              .map((e) => polybool.Coordinate(e.latitude, e.longitude))
+              .toList()
+        ]));
+      }
+      polys.add(Polygon(
+          points: united.regions.first.map((e) => LatLng(e.x, e.y)).toList(),
+          color: Colors.red.withOpacity(0.25),
+          borderColor: Colors.red,
+          borderStrokeWidth: 3,
+          isFilled: true));
+    }
+
+    print(polyMapping);
+    print(polys);
+
     setState(() {
-      circles = [];
+      circles = circleMarker.values.toList();
+      this.polys = polys;
+      print("set newpolys");
       // circles = circleMarker.values.toList();
     });
   }
