@@ -21,6 +21,8 @@ import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:polybool/polybool.dart' as polybool;
+import 'package:flutter_background_geolocation/flutter_background_geolocation.dart'
+    as bg;
 
 const double radius = 100.0;
 
@@ -41,8 +43,8 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
   @override
   void initState() {
     super.initState();
-    LocationManager().determinePosition();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      locationManager.determinePosition();
       ref.read(poiProvider.notifier).getPois();
       if (kIsWeb)
         setState(() {
@@ -55,7 +57,29 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
       else {
         getNormalCache();
       }
-      mapController.move(const LatLng(51.351, 10.591), 6);
+      mapController.move(const LatLng(51.351, 10.591), 7);
+      bg.BackgroundGeolocation.onLocation((bg.Location location) {
+        print('[location] - $location');
+      });
+      bg.BackgroundGeolocation.onMotionChange((bg.Location location) {
+        print('[motionchange] - $location');
+      });
+
+      bg.BackgroundGeolocation.ready(bg.Config(
+              desiredAccuracy: bg.Config.DESIRED_ACCURACY_HIGH,
+              distanceFilter: 10.0,
+              stopOnTerminate: false,
+              startOnBoot: true,
+              debug: true,
+              logLevel: bg.Config.LOG_LEVEL_VERBOSE))
+          .then((bg.State state) {
+        if (!state.enabled) {
+          ////
+          // 3.  Start the plugin.
+          //
+          bg.BackgroundGeolocation.start();
+        }
+      });
     });
   }
 
@@ -64,17 +88,23 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
     await ref.read(wayProvider.notifier).getWays();
     var pois = await ref.read(poiProvider.notifier).getState();
     var ways = await ref.read(wayProvider.notifier).getState();
-    getWays(ways);
     getPoiMarker(pois);
     getCircles(pois);
+    getWays(ways);
   }
 
   Future<void> getWays(List<Way> elements) async {
+    DateTime now = DateTime.now();
+    print(now.hour);
+    bool clear = now.hour < 7 || now.hour >= 20;
+    print(clear);
     setState(() {
-      polys = elements
+      polys += elements
           .map((e) => Polygon(
               points: e.boundaries,
-              color: Colors.yellow.withOpacity(0.5),
+              color: clear
+                  ? Colors.green.withOpacity(0.5)
+                  : Colors.yellow.withOpacity(0.5),
               isFilled: true))
           .toList();
     });
@@ -291,12 +321,7 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
               child: const Icon(Icons.my_location),
               onPressed: () async {
                 Position? position;
-                position = await locationManager.determinePosition().timeout(
-                  Duration(seconds: 5),
-                  onTimeout: () {
-                    position = locationManager.lastPosition;
-                  },
-                );
+                position = await locationManager.determinePosition();
                 if (position == null) {
                   print(locationManager.lastPosition);
                   if (locationManager.lastPosition != null) {
@@ -311,8 +336,7 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
                   print("yeah");
                 }
                 mapController.move(
-                    LatLng(position!.latitude, position!.longitude),
-                    mapController.camera.zoom);
+                    LatLng(position!.latitude, position!.longitude), 19);
               },
             )),
         Positioned(

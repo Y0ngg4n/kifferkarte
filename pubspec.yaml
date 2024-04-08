@@ -54,6 +54,7 @@ dependencies:
   dio: ^5.4.2+1
   vibration: ^1.8.4
   polybool: ^0.2.0
+  flutter_background_geolocation: ^4.15.1
 
 dev_dependencies:
   flutter_test:

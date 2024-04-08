@@ -16,98 +16,57 @@ class LocationManager {
   bool listeningToPosition = false;
   Position? lastPosition;
 
-  /// Determine the current position of the device.
-  ///
-  /// When the location services are not enabled or permissions
-  /// are denied the `Future` will return an error.
   Future<Position?> determinePosition() async {
     bool serviceEnabled;
     LocationPermission permission;
 
-    // Test if location services are enabled.
-    try {
-      serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (kIsWeb) {
-        print("Location on web");
-        permission = await Geolocator.checkPermission();
+    // // Test if location services are enabled.
+    // serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    // if (!serviceEnabled) {
+    //   // Location services are not enabled don't continue
+    //   // accessing the position and request users of the
+    //   // App to enable the location services.
+    //   print('Location services are disabled.');
+    //   Geolocator.openLocationSettings();
+    // }
+
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        // Permissions are denied, next time you could try
+        // requesting permissions again (this is also where
+        // Android's shouldShowRequestPermissionRationale
+        // returned true. According to Android guidelines
+        // your App should show an explanatory UI now
+        print('Location permissions are denied');
+        permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied) {
+          print('Location permissions are denied');
           permission = await Geolocator.requestPermission();
-          if (permission == LocationPermission.denied) {
-            // Permissions are denied, next time you could try
-            // requesting permissions again (this is also where
-            // Android's shouldShowRequestPermissionRationale
-            // returned true. According to Android guidelines
-            // your App should show an explanatory UI now
-            print('Location permissions are denied');
-            permission = await Geolocator.requestPermission();
-            if (permission == LocationPermission.denied) {
-              print('Location permissions are denied');
-              permission = await Geolocator.requestPermission();
-              return null;
-            }
-          }
-        }
-
-        if (permission == LocationPermission.deniedForever) {
-          // Permissions are denied forever, handle appropriately.
-          print(
-              'Location permissions are permanently denied, we cannot request permissions.');
-          return null;
-        } else {
-          print("Permissions should be fine");
-        }
-
-        // When we reach here, permissions are granted and we can
-        // continue accessing the position of the device.
-        Position currentPosition = await Geolocator.getCurrentPosition();
-        lastPosition = currentPosition;
-        print("Got location");
-        return currentPosition;
-      }
-      if (!serviceEnabled) {
-        // Location services are not enabled don't continue
-        // accessing the position and request users of the
-        // App to enable the location services.
-        print('Location services are disabled.');
-        Geolocator.openLocationSettings();
-
-        permission = await Geolocator.checkPermission();
-        if (permission == LocationPermission.denied) {
-          permission = await Geolocator.requestPermission();
-          if (permission == LocationPermission.denied) {
-            // Permissions are denied, next time you could try
-            // requesting permissions again (this is also where
-            // Android's shouldShowRequestPermissionRationale
-            // returned true. According to Android guidelines
-            // your App should show an explanatory UI now
-            print('Location permissions are denied');
-            permission = await Geolocator.requestPermission();
-            if (permission == LocationPermission.denied) {
-              print('Location permissions are denied');
-              permission = await Geolocator.requestPermission();
-              return null;
-            }
-          }
-        }
-
-        if (permission == LocationPermission.deniedForever) {
-          // Permissions are denied forever, handle appropriately.
-          print(
-              'Location permissions are permanently denied, we cannot request permissions.');
           return null;
         }
-
-        // When we reach here, permissions are granted and we can
-        // continue accessing the position of the device.
-        var currentPosition = await Geolocator.getCurrentPosition();
-        lastPosition = currentPosition;
-        return currentPosition;
-      } else {
-        print("No location services enabled");
       }
-    } catch (e) {
-      print(e);
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      // Permissions are denied forever, handle appropriately.
+      print(
+          'Location permissions are permanently denied, we cannot request permissions.');
       return null;
+    }
+
+    // When we reach here, permissions are granted and we can
+    // continue accessing the position of the device.
+    try {
+      Position currentPosition = await Geolocator.getCurrentPosition(
+        forceAndroidLocationManager: true,
+        timeLimit: Duration(seconds: 5),
+      );
+      lastPosition = currentPosition;
+      return lastPosition;
+    } catch (Exception) {
+      return lastPosition;
     }
   }
 
@@ -115,6 +74,7 @@ class LocationManager {
     _positionStreamSubscription?.cancel();
     var stream = _geolocatorPlatform.getPositionStream();
     _positionStreamSubscription = stream.listen((event) {
+      print("position via stream");
       checkPositionInCircle(ref, event);
     });
     listeningToPosition = true;
