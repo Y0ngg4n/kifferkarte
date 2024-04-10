@@ -76,6 +76,8 @@ class _KifferkarteWidgetState extends ConsumerState<KifferkarteWidget> {
     bool inCircle = ref.watch(inCircleProvider);
     bool updating = ref.watch(updatingProvider);
     bool smokeable = false;
+    print("Innnnn circle $inCircle");
+    print("Innnnn way $inWay");
     DateTime now = DateTime.now();
     if ((!inCircle && !inWay) ||
         (!inCircle && (now.hour < 7 || now.hour > 20))) {

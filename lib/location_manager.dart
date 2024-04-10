@@ -143,9 +143,9 @@ class LocationManager {
         vibrate(ref);
         await Future.delayed(const Duration(milliseconds: 500));
         vibrate(ref);
-        ref.read(inCircleProvider.notifier).set(true);
+        ref.read(inWayProvider.notifier).set(true);
       } else {
-        ref.read(inCircleProvider.notifier).set(false);
+        ref.read(inWayProvider.notifier).set(false);
       }
     } else {
       print("Chek position in circle");

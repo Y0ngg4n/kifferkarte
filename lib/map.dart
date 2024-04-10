@@ -53,7 +53,7 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
           // _cacheStore = DbCacheStore(
           //   databasePath: '', // ignored on web
           //   databaseName: 'DbCacheStore',
-          // )
+          // );
           _cacheStore = MemCacheStore();
         });
       else {
