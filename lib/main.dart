@@ -78,7 +78,7 @@ class _KifferkarteWidgetState extends ConsumerState<KifferkarteWidget> {
     bool smokeable = false;
     DateTime now = DateTime.now();
     if ((!inCircle && !inWay) ||
-        (!inCircle && (now.hour < 7 || now.hour > 20))) {
+        (!inCircle && (now.hour < 7 || now.hour >= 20))) {
       smokeable = true;
     }
     return Scaffold(

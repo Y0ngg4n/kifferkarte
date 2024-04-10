@@ -109,7 +109,7 @@ class LocationManager {
       }
     }
     DateTime now = DateTime.now();
-    if (now.hour > 7 && now.hour < 20) {
+    if (now.hour >= 7 && now.hour < 20) {
       for (Way way in ways) {
         List<pip.Point> bounds = way.boundaries
             .map((e) => pip.Point(x: e.latitude, y: e.longitude))
@@ -122,7 +122,6 @@ class LocationManager {
     }
     bool currentInCircleState = ref.read(inCircleProvider);
     bool currentInWayState = ref.read(inWayProvider);
-    print("InCircle ${inCircle}");
     if (currentInCircleState != inCircle) {
       if (inCircle) {
         vibrate(ref);
@@ -135,7 +134,6 @@ class LocationManager {
         ref.read(inCircleProvider.notifier).set(false);
       }
     }
-    print("InWay ${inWay}");
     if (currentInWayState != inWay) {
       if (inWay) {
         vibrate(ref);

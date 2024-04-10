@@ -80,9 +80,7 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
 
   void getWays(List<Way> elements) {
     DateTime now = DateTime.now();
-    print(now.hour);
     bool clear = now.hour < 7 || now.hour >= 20;
-    print(clear);
     setState(() {
       polys += elements
           .map((e) => Polygon(
