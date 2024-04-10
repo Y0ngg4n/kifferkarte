@@ -32,7 +32,7 @@ class Rules extends StatelessWidget {
             style: TextStyle(fontSize: 20),
           ),
           Text(
-            """Die Kifferkarte übernimmt keine Verantwortung für dein Handeln und hat keine Gewährleistung auf Korrektheit.
+            """Die Kifferkarte übernimmt keine Verantwortung für dein Handeln und hat keine Garantie auf Korrektheit.
 Bitte informiere dich vor Ort und wenn du nicht sicher bist, kiffe nicht öffentlich.
 Es werden keine persönlichen Daten gespeichert. Es gibt einen Serverlog aber das ist auch alles. Es werden Daten aus Openstreetmap, Overpass und Nomatim geladen.
 Es werden ausschließlich die Öffentlichen Instanzen benutzt. Sollten Daten fehlen, trage diese bitte in OpenStreetMap ein, dann sollten sie auch hier auftauchen.
