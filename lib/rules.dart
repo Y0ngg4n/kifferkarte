@@ -17,7 +17,7 @@ class Rules extends StatelessWidget {
           ),
           Text(
             """1) Der Konsum von Cannabis in unmittelbarer Gegenwart von Personen, die das 18. Lebensjahr noch nicht vollendet haben, ist verboten
-      2) Der öffentliche Konsum von Cannabis ist verboten:
+2) Der öffentliche Konsum von Cannabis ist verboten:
         1. in Schulen und in deren Sichtweite,
         2. auf Kinderspielplätzen und in deren Sichtweite,
         3. in Kinder- und Jugendeinrichtungen und in deren Sichtweite,
@@ -33,11 +33,9 @@ class Rules extends StatelessWidget {
           ),
           Text(
             """Die Kifferkarte übernimmt keine Verantwortung für dein Handeln und hat keine Gewährleistung auf Korrektheit.
-      Bitte informiere dich vor Ort und wenn du nicht sicher bist, bubatze nicht öffentlich.
-      Es werden keine persönlichen Daten gespeichert. Es gibt einen Serverlog aber das ist auch alles. Es werden Daten aus Openstreetmap, Overpass und Nomatim geladen.
-      Alles die öffentlichen Instanzen.
-      Es werden keine persönlichen Daten gespeichert. Es gibt einen Serverlog aber das ist auch alles. Es werden Daten aus Openstreetmap, Overpass und Nomatim geladen.
-      Alles die öffentlichen Instanzen.
+Bitte informiere dich vor Ort und wenn du nicht sicher bist, kiffe nicht öffentlich.
+Es werden keine persönlichen Daten gespeichert. Es gibt einen Serverlog aber das ist auch alles. Es werden Daten aus Openstreetmap, Overpass und Nomatim geladen.
+Es werden ausschließlich die Öffentlichen Instanzen benutzt. Sollten Daten fehlen, trage diese bitte in OpenStreetMap ein, dann sollten sie auch hier auftauchen.
             """,
             textAlign: TextAlign.left,
           ),

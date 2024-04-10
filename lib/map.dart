@@ -21,6 +21,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:polybool/polybool.dart' as polybool;
+import 'package:vibration/vibration.dart';
 
 const double radius = 100.0;
 
@@ -41,12 +42,14 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
   Timer? _debounce;
   bool rotateMap = false;
   bool followPosition = true;
+  bool hasVibrator = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       locationManager.determinePosition();
+      checkVibrator();
       ref.read(poiProvider.notifier).getPois(ref);
       if (kIsWeb)
         setState(() {
@@ -60,6 +63,14 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
         getNormalCache();
       }
       locationManager.startPositionCheck(ref);
+    });
+  }
+
+  Future<void> checkVibrator() async {
+    bool? vib = await Vibration.hasVibrator();
+    if (vib == null) return;
+    setState(() {
+      this.hasVibrator = vib;
     });
   }
 
@@ -326,7 +337,7 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
                 });
                 if (position == null) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text("Could not get Position")));
+                      SnackBar(content: Text("Keine Position bekannt")));
                   return;
                 } else {
                   mapController.move(
@@ -347,16 +358,17 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
                 });
               },
             )),
-        Positioned(
-            bottom: 150,
-            right: 10,
-            child: FloatingActionButton(
-              heroTag: "vibrate",
-              child: Icon(vibrate ? (Icons.vibration) : (Icons.smartphone)),
-              onPressed: () async {
-                ref.read(vibrateProvider.notifier).set(!vibrate);
-              },
-            )),
+        if (hasVibrator)
+          Positioned(
+              bottom: 150,
+              right: 10,
+              child: FloatingActionButton(
+                heroTag: "vibrate",
+                child: Icon(vibrate ? (Icons.vibration) : (Icons.smartphone)),
+                onPressed: () async {
+                  ref.read(vibrateProvider.notifier).set(!vibrate);
+                },
+              )),
         Positioned(
             top: 10,
             right: 10,
