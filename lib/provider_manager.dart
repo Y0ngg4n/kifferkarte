@@ -19,10 +19,10 @@ class PoiNotifier extends StateNotifier<List<Poi>> {
   Future<void> getPois(WidgetRef ref) async {
     OverpassResponse? overpassResponse;
     if (mapController.camera.zoom < 15) {
-      LatLng? position = ref.read(lastPositionProvider.notifier).getState();
+      Position? position = ref.read(lastPositionProvider.notifier).getState();
       if (position != null) {
-        overpassResponse =
-            await Overpass.getKifferPoiInRadius(position, radius.toInt() * 3);
+        overpassResponse = await Overpass.getKifferPoiInRadius(
+            LatLng(position.latitude, position.longitude), radius.toInt() * 3);
       }
     } else {
       overpassResponse = await Overpass.getKifferPoiInBounds(
@@ -91,7 +91,7 @@ class WayNotifier extends StateNotifier<List<Way>> {
 }
 
 class InCircleNotifier extends StateNotifier<bool> {
-  InCircleNotifier() : super(false);
+  InCircleNotifier() : super(true);
 
   void init() {
     state = false;
@@ -105,7 +105,7 @@ class InCircleNotifier extends StateNotifier<bool> {
 }
 
 class InWayNotifier extends StateNotifier<bool> {
-  InWayNotifier() : super(false);
+  InWayNotifier() : super(true);
 
   void init() {
     state = false;

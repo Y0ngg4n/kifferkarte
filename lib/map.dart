@@ -39,7 +39,7 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
   List<CircleMarker> circles = [];
   List<Polygon> polys = [];
   Timer? _debounce;
-  bool rotateMap = true;
+  bool rotateMap = false;
   bool followPosition = true;
 
   @override
@@ -121,7 +121,7 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
                 child: const Icon(
                   Icons.location_pin,
                   size: 25,
-                  color: Colors.black,
+                  color: Colors.red,
                 ),
               ))
           .toList();
@@ -253,6 +253,7 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
   Widget build(BuildContext context) {
     bool vibrate = ref.watch(vibrateProvider);
     Position? position = ref.watch(lastPositionProvider);
+    bool updating = ref.watch(updatingProvider);
 
     return Stack(
       children: [
@@ -396,7 +397,14 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
                 ));
                 update();
               },
-            ))
+            )),
+        if (updating)
+          Container(
+            color: Colors.white.withOpacity(0.25),
+            child: Center(
+              child: CircularProgressIndicator(),
+            ),
+          )
       ],
     );
   }
