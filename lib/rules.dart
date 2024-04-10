@@ -35,7 +35,25 @@ class Rules extends StatelessWidget {
             """Die Kifferkarte übernimmt keine Verantwortung für dein Handeln und hat keine Garantie auf Korrektheit.
 Bitte informiere dich vor Ort und wenn du nicht sicher bist, kiffe nicht öffentlich.
 Es werden keine persönlichen Daten gespeichert. Es gibt einen Serverlog aber das ist auch alles. Es werden Daten aus Openstreetmap, Overpass und Nomatim geladen.
-Es werden ausschließlich die Öffentlichen Instanzen benutzt. Sollten Daten fehlen, trage diese bitte in OpenStreetMap ein, dann sollten sie auch hier auftauchen.
+Es werden ausschließlich die Öffentlichen Instanzen benutzt.
+            """,
+            textAlign: TextAlign.left,
+          ),
+          Text(
+            "FAQ",
+            style: TextStyle(fontSize: 20),
+          ),
+          Text(
+            """Warum muss ich erst reinzomen um die Zonen zu sehen? Die Bubatzkarte kann das doch auch so?
+Die Bubatzkarte benutzt eine andere Technologie. Die Bubatzkarte verwendet vorgerenderte Kartenbereiche und benutzt einen eigens dafür entwickelten Tileserver. Die Kifferkarte benutzt die Overpass API und um diese nicht zu sehr zu belasten, beschränken wir das Zoom Level. Ansonsten würde es mehrere Minuten dauern um alle Punkte zu laden.
+
+Warum finde ich Zonen auch im Ausland?
+Die Kifferkarte überprüft nicht ob sich die Einschränkenden Plätze im Ausland befinden. Ich hatte mehrere Tests gemacht, jedoch keinen Zuverlässigen Weg gefunden nach dem Land zu filtern ohne nicht mehr alle Daten in Deutschland zu erhalten.
+
+Was mache ich, wenn Daten fehlen?
+Sollten Daten fehlen, gibt es 2 Möglichkeiten:
+Die Daten sind nicht in OpenStreetMap verzeichnet -> Füge die Daten zu OpenStreetMap hinzu.
+Die Kifferkarte verarbeitet die Daten falsch -> kontaktiere mich und ich werde versuchen das Problem zu beheben.
             """,
             textAlign: TextAlign.left,
           ),

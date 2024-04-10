@@ -23,6 +23,9 @@ class PoiNotifier extends StateNotifier<List<Poi>> {
       if (position != null) {
         overpassResponse = await Overpass.getKifferPoiInRadius(
             LatLng(position.latitude, position.longitude), radius.toInt() * 3);
+      } else {
+        overpassResponse = await Overpass.getKifferPoiInRadius(
+            mapController.camera.center, radius.toInt() * 3);
       }
     } else {
       overpassResponse = await Overpass.getKifferPoiInBounds(

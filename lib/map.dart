@@ -8,6 +8,7 @@ import 'package:dio_cache_interceptor_db_store/dio_cache_interceptor_db_store.da
 import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_cache/flutter_map_cache.dart';
 import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
@@ -43,6 +44,7 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
   bool rotateMap = false;
   bool followPosition = true;
   bool hasVibrator = false;
+  var platformNotification;
 
   @override
   void initState() {
@@ -63,6 +65,25 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
         getNormalCache();
       }
       locationManager.startPositionCheck(ref);
+      FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+          FlutterLocalNotificationsPlugin();
+      var android =
+          flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin>();
+      var linux =
+          flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<
+              LinuxFlutterLocalNotificationsPlugin>();
+      if (android != null) {
+        android.requestNotificationsPermission();
+        setState(() {
+          platformNotification = android;
+        });
+      }
+      if (linux != null) {
+        setState(() {
+          platformNotification = linux;
+        });
+      }
     });
   }
 
@@ -324,6 +345,21 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
                 },
                 initialCenter: LatLng(51.351, 10.591),
                 initialZoom: 7)),
+        if (15 - mapController.camera.zoom.toInt() > 0)
+          Positioned(
+              child: Container(
+            color: Colors.white.withOpacity(0.75),
+            height: 40,
+            alignment: Alignment.topCenter,
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                "Zoome an einen Ort um die Zonen zu sehen (noch ${15 - mapController.camera.zoom.toInt()} Stufen)",
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 20),
+              ),
+            ),
+          )),
         Positioned(
             bottom: 80,
             right: 10,
