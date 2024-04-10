@@ -1,6 +1,8 @@
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:kifferkarte/location_manager.dart';
+import 'package:kifferkarte/map.dart';
 import 'package:kifferkarte/overpass.dart';
 import 'package:kifferkarte/poi_manager.dart';
 import 'package:latlong2/latlong.dart';
@@ -14,13 +16,18 @@ class PoiNotifier extends StateNotifier<List<Poi>> {
     state = [];
   }
 
-  Future<void> getPois() async {
-    if (mapController.camera.zoom < 13) {
-      state = [];
-      return;
+  Future<void> getPois(WidgetRef ref) async {
+    OverpassResponse? overpassResponse;
+    if (mapController.camera.zoom < 15) {
+      LatLng? position = ref.read(lastPositionProvider.notifier).getState();
+      if (position != null) {
+        overpassResponse =
+            await Overpass.getKifferPoiInRadius(position, radius.toInt() * 3);
+      }
+    } else {
+      overpassResponse = await Overpass.getKifferPoiInBounds(
+          mapController.camera.visibleBounds);
     }
-    OverpassResponse? overpassResponse =
-        await Overpass.getKifferPoiInBounds(mapController.camera.visibleBounds);
     if (overpassResponse != null) {
       List<Poi> pois = [];
       List<int> osmIds = [];
@@ -97,6 +104,62 @@ class InCircleNotifier extends StateNotifier<bool> {
   getState() => state;
 }
 
+class InWayNotifier extends StateNotifier<bool> {
+  InWayNotifier() : super(false);
+
+  void init() {
+    state = false;
+  }
+
+  void set(bool value) {
+    state = value;
+  }
+
+  getState() => state;
+}
+
+class VibrateNotifier extends StateNotifier<bool> {
+  VibrateNotifier() : super(false);
+
+  void init() {
+    state = false;
+  }
+
+  void set(bool value) {
+    state = value;
+  }
+
+  getState() => state;
+}
+
+class UpdatingNotifier extends StateNotifier<bool> {
+  UpdatingNotifier() : super(false);
+
+  void init() {
+    state = false;
+  }
+
+  void set(bool value) {
+    state = value;
+  }
+
+  getState() => state;
+}
+
+class LastPositionNotifier extends StateNotifier<Position?> {
+  LastPositionNotifier() : super(null);
+
+  void init() {
+    state = null;
+  }
+
+  void set(Position value) {
+    state = value;
+  }
+
+  getState() => state;
+}
+
 final poiProvider = StateNotifierProvider<PoiNotifier, List<Poi>>((ref) {
   return PoiNotifier();
 });
@@ -106,4 +169,21 @@ final wayProvider = StateNotifierProvider<WayNotifier, List<Way>>((ref) {
 });
 final inCircleProvider = StateNotifierProvider<InCircleNotifier, bool>((ref) {
   return InCircleNotifier();
+});
+
+final inWayProvider = StateNotifierProvider<InWayNotifier, bool>((ref) {
+  return InWayNotifier();
+});
+
+final lastPositionProvider =
+    StateNotifierProvider<LastPositionNotifier, Position?>((ref) {
+  return LastPositionNotifier();
+});
+
+final vibrateProvider = StateNotifierProvider<VibrateNotifier, bool>((ref) {
+  return VibrateNotifier();
+});
+
+final updatingProvider = StateNotifierProvider<UpdatingNotifier, bool>((ref) {
+  return UpdatingNotifier();
 });

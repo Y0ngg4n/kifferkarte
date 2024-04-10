@@ -80,6 +80,48 @@ class Overpass {
     }
   }
 
+  static Future<OverpassResponse?> getKifferPoiInRadius(
+      LatLng position, int radius) async {
+    final List<String> tags = [
+      "[leisure=playground]",
+      "[amenity=school]",
+      "[amenity=kindergarten]",
+      "[building=kindergarten]",
+      "[community_centre=youth_centre]",
+      "[amenity=childcare]",
+      "[name~'Jugendherberge']",
+      "[amenity=social_facility][\"social_facility:for\"=\"child\"]",
+      "[amenity=social_facility][\"social_facility:for\"=\"childcare\"]",
+      "[amenity=social_facility][\"social_facility:for\"=\"juvenile\"]",
+      "[leisure=pitch]",
+      "[leisure=sports_hall]",
+      "[leisure=sports_centre]",
+      "[leisure=horse_riding]",
+      "[leisure=swimming_pool]",
+      "[leisure=track]",
+      "[leisure=stadium]",
+      "[leisure=water_park]",
+      "[leisure=golf_course]"
+    ];
+    String body = "[out:json][timeout:20][maxsize:536870912];\(";
+    // Generate Overpass queries for each tag
+    tags.forEach((value) {
+      body += '''
+      nw${value}(around:${radius},${position.latitude},${position.longitude});
+      ''';
+    });
+    body += "\);(._;>;);out;";
+    print(body);
+    http.Response response = await http.post(Uri.parse(overpassUrl),
+        headers: {"charset": "utf-8"}, body: body);
+    if (response.statusCode == 200) {
+      return OverpassResponse.fromJson(
+          jsonDecode(utf8.decode(response.bodyBytes)));
+    } else {
+      return null;
+    }
+  }
+
   static Future<OverpassResponse?> getPedestrianWaysBoundariesInBounds(
       LatLngBounds? latLngBounds) async {
     if (latLngBounds == null) return null;

@@ -9,6 +9,7 @@ import 'package:kifferkarte/overpass.dart';
 import 'package:kifferkarte/provider_manager.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:vibration/vibration.dart';
+import 'package:point_in_polygon/point_in_polygon.dart' as pip;
 
 class LocationManager {
   final GeolocatorPlatform _geolocatorPlatform = GeolocatorPlatform.instance;
@@ -72,10 +73,13 @@ class LocationManager {
 
   Future<void> startPositionCheck(WidgetRef ref) async {
     _positionStreamSubscription?.cancel();
-    var stream = _geolocatorPlatform.getPositionStream();
+    var stream = _geolocatorPlatform.getPositionStream(
+        locationSettings: LocationSettings(distanceFilter: 1));
     _positionStreamSubscription = stream.listen((event) {
       print("position via stream");
       checkPositionInCircle(ref, event);
+      lastPosition = event;
+      ref.read(lastPositionProvider.notifier).set(event);
     });
     listeningToPosition = true;
   }
@@ -88,8 +92,11 @@ class LocationManager {
   Future<void> checkPositionInCircle(WidgetRef ref, Position? position) async {
     if (position == null) return;
     List<Poi> pois = ref.watch(poiProvider);
+    print(pois.length);
+    List<Way> ways = ref.watch(wayProvider);
     Distance distance = const Distance();
     bool inCircle = false;
+    bool inWay = false;
     for (Poi poi in pois) {
       if (poi.poiElement.lat != null &&
           poi.poiElement.lon != null &&
@@ -101,19 +108,52 @@ class LocationManager {
         inCircle = true;
       }
     }
+    DateTime now = DateTime.now();
+    if (now.hour > 7 && now.hour < 20) {
+      for (Way way in ways) {
+        List<pip.Point> bounds = way.boundaries
+            .map((e) => pip.Point(x: e.latitude, y: e.longitude))
+            .toList();
+        if (pip.Poly.isPointInPolygon(
+            pip.Point(x: position.latitude, y: position.longitude), bounds)) {
+          inWay = true;
+        }
+      }
+    }
     bool currentInCircleState = ref.read(inCircleProvider);
+    bool currentInWayState = ref.read(inWayProvider);
+    print("InCircle ${inCircle}");
     if (currentInCircleState != inCircle) {
       if (inCircle) {
-        vibrate();
+        vibrate(ref);
         await Future.delayed(const Duration(seconds: 1));
-        vibrate();
+        vibrate(ref);
+        ref.read(inCircleProvider.notifier).set(true);
+        ref.read(inCircleProvider.notifier).set(inWay);
       } else {
-        vibrate();
+        vibrate(ref);
+        ref.read(inCircleProvider.notifier).set(false);
       }
+    }
+    print("InWay ${inWay}");
+    if (currentInWayState != inWay) {
+      if (inWay) {
+        vibrate(ref);
+        await Future.delayed(const Duration(milliseconds: 500));
+        vibrate(ref);
+        await Future.delayed(const Duration(milliseconds: 500));
+        vibrate(ref);
+        ref.read(inCircleProvider.notifier).set(true);
+      } else {
+        ref.read(inCircleProvider.notifier).set(false);
+      }
+    } else {
+      print("Chek position in circle");
     }
   }
 
-  Future<void> vibrate() async {
+  Future<void> vibrate(WidgetRef ref) async {
+    if (!ref.watch(vibrateProvider)) return;
     bool? hasVibrator = await Vibration.hasVibrator();
     if (hasVibrator != null && hasVibrator) {
       Vibration.vibrate();

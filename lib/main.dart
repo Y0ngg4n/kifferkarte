@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:kifferkarte/map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:drift/drift.dart';
+import 'package:kifferkarte/provider_manager.dart';
 import 'package:kifferkarte/rules.dart';
 
 Future<void> main() async {
@@ -34,7 +35,7 @@ class Kifferkarte extends StatelessWidget {
         //
         // This works for code too, not just values: Most code changes can be
         // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.green.shade900),
         useMaterial3: true,
       ),
       home: KifferkarteWidget(title: 'Kifferkarte'),
@@ -42,7 +43,7 @@ class Kifferkarte extends StatelessWidget {
   }
 }
 
-class KifferkarteWidget extends StatefulWidget {
+class KifferkarteWidget extends ConsumerStatefulWidget {
   KifferkarteWidget({super.key, required this.title});
 
   // This widget is the home page of your application. It is stateful, meaning
@@ -57,10 +58,10 @@ class KifferkarteWidget extends StatefulWidget {
   final String title;
 
   @override
-  State<KifferkarteWidget> createState() => _KifferkarteWidgetState();
+  ConsumerState<KifferkarteWidget> createState() => _KifferkarteWidgetState();
 }
 
-class _KifferkarteWidgetState extends State<KifferkarteWidget> {
+class _KifferkarteWidgetState extends ConsumerState<KifferkarteWidget> {
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -68,7 +69,18 @@ class _KifferkarteWidgetState extends State<KifferkarteWidget> {
     //
     // The Flutter framework has been optimized to make rerunning build methods
     // fast, so that you can just rebuild anything that needs updating rather
+
     // than having to individually change instances of widgets.
+
+    bool inWay = ref.watch(inWayProvider);
+    bool inCircle = ref.watch(inCircleProvider);
+    bool updating = ref.watch(updatingProvider);
+    bool smokeable = false;
+    DateTime now = DateTime.now();
+    if ((!inCircle && !inWay) ||
+        (!inCircle && (now.hour < 7 || now.hour > 20))) {
+      smokeable = true;
+    }
     return Scaffold(
       appBar: AppBar(
         // TRY THIS: Try changing the color here to a specific color (to
@@ -78,11 +90,24 @@ class _KifferkarteWidgetState extends State<KifferkarteWidget> {
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
+        actions: [
+          updating
+              ? CircularProgressIndicator()
+              : smokeable
+                  ? Text("Kiffen vermutlich erlaubt")
+                  : Text("Kiffen nicht erlaubt"),
+          if (!updating)
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Icon(smokeable ? Icons.smoking_rooms : Icons.smoke_free),
+            )
+        ],
       ),
-      bottomSheet: ExpansionTile(
-        initiallyExpanded: false,
-        title: Text("Gesetzliche Lage und Anwendung"),
-        children: [Rules()],
+      bottomSheet: SingleChildScrollView(
+        child: ExpansionTile(
+          title: Text("Gesetzliche Lage und Anwendung"),
+          children: [Rules()],
+        ),
       ),
       body: MapWidget(),
     );

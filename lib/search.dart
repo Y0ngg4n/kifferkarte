@@ -34,7 +34,8 @@ class _SearchViewState extends ConsumerState<SearchView> {
       Future.delayed(
         const Duration(seconds: 1),
         () async {
-          Position? position = await widget.locationManager.determinePosition();
+          Position? position =
+              ref.read(lastPositionProvider.notifier).getState();
           NomatimResponse? response =
               await Nomatim.searchNomatim(position, textEditingController.text);
           setState(() {

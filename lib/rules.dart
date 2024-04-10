@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 class Rules extends StatelessWidget {
   const Rules({super.key});
@@ -7,7 +8,7 @@ class Rules extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
-      child: const Column(
+      child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
@@ -32,9 +33,40 @@ class Rules extends StatelessWidget {
           ),
           Text(
             """Die Kifferkarte übernimmt keine Verantwortung für dein Handeln und hat keine Gewährleistung auf Korrektheit.
-            Bitte informiere dich vor Ort und wenn du nicht sicher bist, bubatze nicht öffentlich.
+      Bitte informiere dich vor Ort und wenn du nicht sicher bist, bubatze nicht öffentlich.
+      Es werden keine persönlichen Daten gespeichert. Es gibt einen Serverlog aber das ist auch alles. Es werden Daten aus Openstreetmap, Overpass und Nomatim geladen.
+      Alles die öffentlichen Instanzen.
+      Es werden keine persönlichen Daten gespeichert. Es gibt einen Serverlog aber das ist auch alles. Es werden Daten aus Openstreetmap, Overpass und Nomatim geladen.
+      Alles die öffentlichen Instanzen.
             """,
             textAlign: TextAlign.left,
+          ),
+          Text("Kontakt/Links", style: TextStyle(fontSize: 20)),
+          GestureDetector(
+              child: Text("Matrix: yonggan@matrixapp.chat",
+                  style: TextStyle(
+                      decoration: TextDecoration.underline,
+                      color: Colors.blue)),
+              onTap: () => launchUrlString(
+                  "https://matrix.to/#/@yonggan:matrixapp.chat")),
+          GestureDetector(
+            child: Text("Email: admin@obco.pro",
+                style: TextStyle(
+                    decoration: TextDecoration.underline, color: Colors.blue)),
+            onTap: () => launchUrlString("mailto:admin@obco.pro"),
+          ),
+          GestureDetector(
+            child: Text("Fedi: @yonggan@iceshrimp.de",
+                style: TextStyle(
+                    decoration: TextDecoration.underline, color: Colors.blue)),
+            onTap: () => launchUrlString("https://iceshrimp.de/@Yonggan"),
+          ),
+          GestureDetector(
+            child: Text("Source code: https://github.com/Y0ngg4n/kifferkarte",
+                style: TextStyle(
+                    decoration: TextDecoration.underline, color: Colors.blue)),
+            onTap: () =>
+                launchUrlString("https://github.com/Y0ngg4n/kifferkarte"),
           ),
         ],
       ),

@@ -21,8 +21,6 @@ import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:polybool/polybool.dart' as polybool;
-import 'package:flutter_background_geolocation/flutter_background_geolocation.dart'
-    as bg;
 
 const double radius = 100.0;
 
@@ -40,12 +38,16 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
   List<Marker> marker = [];
   List<CircleMarker> circles = [];
   List<Polygon> polys = [];
+  Timer? _debounce;
+  bool rotateMap = true;
+  bool followPosition = true;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       locationManager.determinePosition();
-      ref.read(poiProvider.notifier).getPois();
+      ref.read(poiProvider.notifier).getPois(ref);
       if (kIsWeb)
         setState(() {
           // _cacheStore = DbCacheStore(
@@ -57,43 +59,26 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
       else {
         getNormalCache();
       }
-      mapController.move(const LatLng(51.351, 10.591), 7);
-      bg.BackgroundGeolocation.onLocation((bg.Location location) {
-        print('[location] - $location');
-      });
-      bg.BackgroundGeolocation.onMotionChange((bg.Location location) {
-        print('[motionchange] - $location');
-      });
-
-      bg.BackgroundGeolocation.ready(bg.Config(
-              desiredAccuracy: bg.Config.DESIRED_ACCURACY_HIGH,
-              distanceFilter: 10.0,
-              stopOnTerminate: false,
-              startOnBoot: true,
-              debug: true,
-              logLevel: bg.Config.LOG_LEVEL_VERBOSE))
-          .then((bg.State state) {
-        if (!state.enabled) {
-          ////
-          // 3.  Start the plugin.
-          //
-          bg.BackgroundGeolocation.start();
-        }
-      });
+      locationManager.startPositionCheck(ref);
     });
   }
 
   Future<void> update() async {
-    await ref.read(poiProvider.notifier).getPois();
-    await ref.read(wayProvider.notifier).getWays();
-    var pois = await ref.read(poiProvider.notifier).getState();
-    var ways = await ref.read(wayProvider.notifier).getState();
-    getPoiMarker(pois);
-    getCircles(pois);
-    getWays(ways);
+    if (_debounce?.isActive ?? false) _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 1000), () async {
+      ref.read(updatingProvider.notifier).set(true);
+      await ref.read(poiProvider.notifier).getPois(ref);
+      await ref.read(wayProvider.notifier).getWays();
+      var pois = await ref.read(poiProvider.notifier).getState();
+      var ways = await ref.read(wayProvider.notifier).getState();
+      getPoiMarker(pois);
+      getCircles(pois);
+      getWays(ways);
+      ref.read(updatingProvider.notifier).set(false);
+    });
   }
 
-  Future<void> getWays(List<Way> elements) async {
+  void getWays(List<Way> elements) {
     DateTime now = DateTime.now();
     print(now.hour);
     bool clear = now.hour < 7 || now.hour >= 20;
@@ -266,6 +251,9 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
 
   @override
   Widget build(BuildContext context) {
+    bool vibrate = ref.watch(vibrateProvider);
+    Position? position = ref.watch(lastPositionProvider);
+
     return Stack(
       children: [
         FlutterMap(
@@ -283,8 +271,10 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
                       maxStale: const Duration(days: 30),
                       store: _cacheStore)),
               CurrentLocationLayer(
-                alignPositionOnUpdate: AlignOnUpdate.always,
-                alignDirectionOnUpdate: AlignOnUpdate.always,
+                alignPositionOnUpdate:
+                    followPosition ? AlignOnUpdate.always : AlignOnUpdate.once,
+                alignDirectionOnUpdate:
+                    rotateMap ? AlignOnUpdate.always : AlignOnUpdate.once,
               ),
               PolygonLayer(
                 polygons: polys,
@@ -294,65 +284,78 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
                 markers: marker,
               ),
               CircleLayer(circles: circles),
-              RichAttributionWidget(
-                animationConfig:
-                    const ScaleRAWA(), // Or `FadeRAWA` as is default
-                attributions: [
-                  TextSourceAttribution(
-                    'OpenStreetMap contributors',
-                    onTap: () => launchUrl(
-                        Uri.parse('https://openstreetmap.org/copyright')),
-                  ),
-                ],
+              Padding(
+                padding: const EdgeInsets.fromLTRB(8, 0, 8, 50),
+                child: RichAttributionWidget(
+                  alignment: AttributionAlignment.bottomLeft,
+                  animationConfig:
+                      const ScaleRAWA(), // Or `FadeRAWA` as is default
+                  attributions: [
+                    TextSourceAttribution(
+                      'OpenStreetMap contributors',
+                      onTap: () => launchUrl(
+                          Uri.parse('https://openstreetmap.org/copyright')),
+                    ),
+                  ],
+                ),
               ),
             ],
             options: MapOptions(
-              maxZoom: 19,
-              minZoom: 0,
-              onPointerUp: (event, point) async {
-                await update();
-              },
-            )),
+                maxZoom: 19,
+                minZoom: 0,
+                onPointerUp: (event, point) {
+                  update();
+                },
+                onMapReady: () {
+                  if (position != null) {
+                    mapController.move(
+                        LatLng(position.latitude, position.longitude), 12);
+                  }
+                },
+                initialCenter: LatLng(51.351, 10.591),
+                initialZoom: 7)),
         Positioned(
-            bottom: 50,
+            bottom: 80,
             right: 10,
             child: FloatingActionButton(
               heroTag: "myLocation",
-              child: const Icon(Icons.my_location),
-              onPressed: () async {
-                Position? position;
-                position = await locationManager.determinePosition();
+              child:
+                  Icon(followPosition ? Icons.navigation : Icons.my_location),
+              onPressed: () {
+                setState(() {
+                  followPosition = !followPosition;
+                });
                 if (position == null) {
-                  print(locationManager.lastPosition);
-                  if (locationManager.lastPosition != null) {
-                    position = locationManager.lastPosition;
-                  } else {
-                    print("no position");
-                    ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text("Could ne get Position")));
-                    return;
-                  }
+                  ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text("Could not get Position")));
+                  return;
                 } else {
-                  print("yeah");
+                  mapController.move(
+                      LatLng(position!.latitude, position!.longitude), 19);
+                  update();
                 }
-                mapController.move(
-                    LatLng(position!.latitude, position!.longitude), 19);
               },
             )),
         Positioned(
-            bottom: 120,
+            top: 80,
+            left: 10,
+            child: FloatingActionButton(
+              heroTag: "rotateMap",
+              child: Icon(rotateMap ? (Icons.crop_rotate) : (Icons.map)),
+              onPressed: () {
+                setState(() {
+                  rotateMap = !rotateMap;
+                });
+              },
+            )),
+        Positioned(
+            bottom: 150,
             right: 10,
             child: FloatingActionButton(
               heroTag: "vibrate",
-              child: Icon(locationManager.listeningToPosition
-                  ? (Icons.smartphone)
-                  : (Icons.vibration)),
+              child: Icon(vibrate ? (Icons.vibration) : (Icons.smartphone)),
               onPressed: () async {
-                if (locationManager.listeningToPosition) {
-                  locationManager.stopPositionCheck(ref);
-                } else {
-                  locationManager.startPositionCheck(ref);
-                }
+                ref.read(vibrateProvider.notifier).set(!vibrate);
               },
             )),
         Positioned(
@@ -361,10 +364,10 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
             child: FloatingActionButton(
               heroTag: "zoomUp",
               child: const Icon(Icons.add),
-              onPressed: () async {
+              onPressed: () {
                 mapController.move(
                     mapController.camera.center, mapController.camera.zoom + 1);
-                await update();
+                update();
               },
             )),
         Positioned(
@@ -373,11 +376,10 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
             child: FloatingActionButton(
               heroTag: "zoomDown",
               child: const Icon(Icons.remove),
-              onPressed: () async {
+              onPressed: () {
                 mapController.move(
                     mapController.camera.center, mapController.camera.zoom - 1);
-
-                await update();
+                update();
               },
             )),
         Positioned(
@@ -386,12 +388,13 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
             child: FloatingActionButton(
               heroTag: "Search",
               child: const Icon(Icons.search),
-              onPressed: () {
-                Navigator.of(context).push(MaterialPageRoute(
+              onPressed: () async {
+                await Navigator.of(context).push(MaterialPageRoute(
                   builder: (context) => SearchView(
                     locationManager: locationManager,
                   ),
                 ));
+                update();
               },
             ))
       ],
