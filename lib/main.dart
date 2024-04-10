@@ -18,7 +18,7 @@ class Kifferkarte extends StatelessWidget {
   Widget build(BuildContext context) {
     return ProviderScope(
         child: MaterialApp(
-      title: 'Kifferkarte',
+      title: 'Kifferkarte (Beta)',
       theme: ThemeData(
         // This is the theme of your application.
         //
