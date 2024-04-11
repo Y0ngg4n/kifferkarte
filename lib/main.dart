@@ -83,7 +83,7 @@ class Kifferkarte extends StatelessWidget {
         useMaterial3: true,
       ),
       home: KifferkarteWidget(
-        title: 'Kifferkarte',
+        title: 'Kifferkarte (Beta)',
         flutterLocalNotificationsPlugin: flutterLocalNotificationsPlugin,
       ),
     ));

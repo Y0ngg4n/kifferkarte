@@ -297,7 +297,7 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
                 },
                 initialCenter: LatLng(51.351, 10.591),
                 initialZoom: 7)),
-        if (mapReady && 15 - mapController.camera.zoom.toInt() > 0)
+        if (mapReady && 13 - mapController.camera.zoom.toInt() > 0)
           Positioned(
               child: Container(
             color: Colors.white.withOpacity(0.75),
@@ -306,7 +306,7 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
             child: Padding(
               padding: const EdgeInsets.all(8.0),
               child: Text(
-                "Zoome an einen Ort um die Zonen zu sehen (noch ${15 - mapController.camera.zoom.toInt()} Stufen)",
+                "Zoome an einen Ort um die Zonen zu sehen (noch ${13 - mapController.camera.zoom.toInt()} Stufen)",
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 20),
               ),
