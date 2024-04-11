@@ -104,7 +104,8 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
       var pois = await ref.read(poiProvider.notifier).getState();
       var ways = await ref.read(wayProvider.notifier).getState();
       getPoiMarker(pois);
-      getCircles(pois);
+      // getCircles(pois);
+      getConvertedPolygons(pois);
       getWays(ways);
       ref.read(updatingProvider.notifier).set(false);
     });
@@ -207,76 +208,34 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
           useRadiusInMeter: true);
     }
 
-    Map<Poi, List<Poi>> polyMapping = new Map();
-    for (Poi currentElement in elements) {
-      for (Poi checkElement in elements) {
-        if (currentElement.poiElement.lat == null ||
-            currentElement.poiElement.lon == null ||
-            checkElement.poiElement.lat == null ||
-            checkElement.poiElement.lon == null) continue;
-        LatLng currentPosition = LatLng(
-            currentElement.poiElement.lat!, currentElement.poiElement.lon!);
-        LatLng checkPosition =
-            LatLng(checkElement.poiElement.lat!, checkElement.poiElement.lon!);
-        Distance distance = new Distance();
-        if (distance.as(LengthUnit.Meter, currentPosition, checkPosition) <=
-            radius * 2) {
-          bool isMapped = false;
-          for (List<Poi> mappedPois in polyMapping.values) {
-            if (mappedPois.contains(checkElement)) {
-              isMapped = true;
-            }
-          }
-
-          if (isMapped) continue;
-
-          if (!polyMapping.containsKey(currentElement)) {
-            polyMapping[currentElement] = [checkElement];
-          } else {
-            polyMapping[currentElement]!.add(checkElement);
-          }
-        }
-      }
-    }
-
-    for (var outerPoly in polyMapping.entries) {
-      if (outerPoly.key.poiElement.lat == null ||
-          outerPoly.key.poiElement.lon == null) continue;
-      LatLng position =
-          LatLng(outerPoly.key.poiElement.lat!, outerPoly.key.poiElement.lon!);
-      List<LatLng> points = circleToPolygon(position, radius, 32);
-      polybool.Polygon united = polybool.Polygon(regions: [
-        points.map((e) => polybool.Coordinate(e.latitude, e.longitude)).toList()
-      ]);
-      circleMarker.remove(position);
-      for (int i = 0; i < outerPoly.value.length; i++) {
-        LatLng innerPosition = LatLng(outerPoly.value[i].poiElement.lat!,
-            outerPoly.value[i].poiElement.lon!);
-        circleMarker.remove(innerPosition);
-        List<LatLng> innerPoints = circleToPolygon(innerPosition, radius, 32);
-        united = united.union(polybool.Polygon(regions: [
-          innerPoints
-              .map((e) => polybool.Coordinate(e.latitude, e.longitude))
-              .toList()
-        ]));
-      }
-      polys.add(Polygon(
-          points: united.regions.first.map((e) => LatLng(e.x, e.y)).toList(),
-          color: Colors.red.withOpacity(0.25),
-          borderColor: Colors.red,
-          borderStrokeWidth: 3,
-          isFilled: true));
-    }
-
-    print(polyMapping);
-    print(polys);
-
     setState(() {
       circles = circleMarker.values.toList();
-      this.polys = polys;
-      print("set newpolys");
       // circles = circleMarker.values.toList();
     });
+  }
+
+  void getConvertedPolygons(List<Poi> elements) {
+    clusterPolygons(elements
+        .where((element) =>
+            element.poiElement.lat != null && element.poiElement.lon != null)
+        .toList());
+  }
+
+  List<List<LatLng>> clusterPolygons(List<Poi> elements) {
+    List<Poi> unvisitedElements = List.of(elements).toList();
+    for (int i = 0; i < elements.length; i++) {
+      for (int z = 0; z < unvisitedElements.length; z++) {
+        Distance distance = Distance();
+        if (distance.as(
+                LengthUnit.Meter,
+                LatLng(
+                    elements[i].poiElement.lat!, elements[i].poiElement.lon!),
+                LatLng(unvisitedElements[z].poiElement.lat!,
+                    unvisitedElements[z].poiElement.lon!)) <=
+            radius * 2) {}
+      }
+      unvisitedElements.removeAt(i);
+    }
   }
 
   Future<void> startPositionCheck() async {
