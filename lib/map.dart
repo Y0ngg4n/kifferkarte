@@ -214,6 +214,7 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
 
   Future<void> startPositionCheck() async {
     if (!(await locationManager.startPositionCheck(ref, () async {
+      print("startPositionCheck");
       await update();
       Position? position = ref.read(lastPositionProvider.notifier).getState();
       if (position != null) {
@@ -289,11 +290,19 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
                   setState(() {
                     mapReady = true;
                   });
-                  if (position != null) {
-                    await update();
-                  } else {
-                    print("Keiiiiiine Position");
-                  }
+                  Timer.new(
+                    Duration(seconds: 10),
+                    () async {
+                      await update();
+                      Position? position =
+                          ref.read(lastPositionProvider.notifier).getState();
+                      if (position != null) {
+                        mapController.move(
+                            LatLng(position.latitude, position.longitude), 19);
+                        locationManager.checkPositionInCircle(ref, position);
+                      }
+                    },
+                  );
                 },
                 initialCenter: LatLng(51.351, 10.591),
                 initialZoom: 7)),
@@ -301,14 +310,14 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
           Positioned(
               child: Container(
             color: Colors.white.withOpacity(0.75),
-            height: 40,
+            height: 50,
             alignment: Alignment.topCenter,
             child: Padding(
-              padding: const EdgeInsets.all(8.0),
+              padding: const EdgeInsets.fromLTRB(50, 8, 50, 8),
               child: Text(
-                "Zoome an einen Ort um die Zonen zu sehen (noch ${13 - mapController.camera.zoom.toInt()} Stufen)",
+                "Zoome an einen Ort um die Zonen zu sehen\n(noch ${13 - mapController.camera.zoom.toInt()} Stufen)",
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 20),
+                style: TextStyle(fontSize: 12),
               ),
             ),
           )),
