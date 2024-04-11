@@ -76,6 +76,7 @@ class LocationManager {
   }
 
   Future<bool> startPositionCheck(WidgetRef ref, Function callUpdate) async {
+    bool wasNull = _positionStreamSubscription == null;
     _positionStreamSubscription?.cancel();
     _updatePositionStreamSubscription?.cancel();
     if (!(await checkPermissions())) {
@@ -100,6 +101,7 @@ class LocationManager {
       callUpdate();
     });
     listeningToPosition = true;
+    if (wasNull) callUpdate();
     return true;
   }
 

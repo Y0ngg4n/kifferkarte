@@ -97,7 +97,7 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
 
   Future<void> update() async {
     if (_debounce?.isActive ?? false) _debounce?.cancel();
-    _debounce = Timer(const Duration(milliseconds: 1000), () async {
+    _debounce = Timer(const Duration(milliseconds: 2000), () async {
       ref.read(updatingProvider.notifier).set(true);
       await ref.read(poiProvider.notifier).getPois(ref);
       await ref.read(wayProvider.notifier).getWays(ref);
@@ -280,8 +280,12 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
   }
 
   Future<void> startPositionCheck() async {
-    if (!(await locationManager.startPositionCheck(ref, () {
-      update();
+    if (!(await locationManager.startPositionCheck(ref, () async {
+      await update();
+      Position? position = ref.read(lastPositionProvider.notifier).getState();
+      if (position != null) {
+        locationManager.checkPositionInCircle(ref, position);
+      }
     }))) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text(
@@ -352,11 +356,10 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
                   setState(() {
                     mapReady = true;
                   });
-
                   if (position != null) {
-                    ref.read(poiProvider.notifier).getPois(ref);
-                    mapController.move(
-                        LatLng(position.latitude, position.longitude), 12);
+                    await update();
+                  } else {
+                    print("Keiiiiiine Position");
                   }
                 },
                 initialCenter: LatLng(51.351, 10.591),
@@ -393,10 +396,10 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
                       SnackBar(content: Text("Keine Position bekannt")));
                   return;
                 } else {
+                  update();
                   await locationManager.checkPositionInCircle(ref, position);
                   mapController.move(
                       LatLng(position!.latitude, position!.longitude), 19);
-                  update();
                 }
               },
             )),
