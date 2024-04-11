@@ -140,6 +140,8 @@ class LocationManager {
     }
     bool currentInCircleState = ref.read(inCircleProvider);
     bool currentInWayState = ref.read(inWayProvider);
+    print("currentInCirclestate $currentInCircleState");
+    print("inCircle $inCircle");
     if (currentInCircleState != inCircle) {
       if (inCircle) {
         vibrate(ref);

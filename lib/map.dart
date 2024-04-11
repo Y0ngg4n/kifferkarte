@@ -393,6 +393,7 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
                       SnackBar(content: Text("Keine Position bekannt")));
                   return;
                 } else {
+                  await locationManager.checkPositionInCircle(ref, position);
                   mapController.move(
                       LatLng(position!.latitude, position!.longitude), 19);
                   update();
