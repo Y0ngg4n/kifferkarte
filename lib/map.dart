@@ -207,8 +207,8 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
           // anchorPos: AnchorPos.exactly(Anchor(40, 30)),
           point: position,
           color: Colors.blue.withOpacity(0.25),
-          borderColor: Colors.blue,
-          borderStrokeWidth: 3,
+          borderColor: Colors.red,
+          borderStrokeWidth: 0,
           radius: radius,
           useRadiusInMeter: true);
     }
