@@ -222,32 +222,49 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
   }
 
   void getConvertedPolygons(List<Poi> elements) {
-    clusterPolygons(elements
+    var filtered = elements
         .where((element) =>
             element.poiElement.lat != null && element.poiElement.lon != null)
-        .toList());
+        .toList();
+    List<List<LatLng>> clustered = [];
+    while (filtered.length > 0) {
+      ClusterResult clusterResult = clusterPolygons(
+          ClusterResult(cluster: [
+            LatLng(
+                filtered.first.poiElement.lat!, filtered.first.poiElement.lon!)
+          ], unvisited: filtered),
+          filtered.first);
+      filtered = clusterResult.unvisited;
+      clustered.add(clusterResult.cluster);
+    }
   }
 
-  ClusterResult clusterPolygons(ClusterResult clusterResult, Poi currentElement) {
-    if (clusterResult.unvisited.length == 0) { // abort
+  ClusterResult clusterPolygons(
+      ClusterResult clusterResult, Poi currentElement) {
+    if (clusterResult.unvisited.length == 0) {
+      // abort
       return clusterResult;
     }
-   List<Poi> unvisited = List.of(clusterResult.unvisited).toList();
+    List<Poi> unvisited = List.of(clusterResult.unvisited).toList();
     // there is a first element
-   for(Poi poi in clusterResult.unvisited){
-        Distance distance = Distance();
+    for (Poi poi in clusterResult.unvisited) {
+      Distance distance = Distance();
 
-        if (distance.as(
-                LengthUnit.Meter,
-                LatLng(
-                    currentElement.poiElement.lat!, currentElement.poiElement.lon!),
-                LatLng(poi.poiElement.lat!,
-                    poi.poiElement.lon!)) <=radius * 2){
-                unvisited.remove(poi);
-                clusterResult.cluster.add(LatLng(poi.poiElement.lat!, poi.poiElement.lon!));
-                clusterPolygons(ClusterResult(cluster: clusterResult.cluster, unvisited: unvisited), poi);
-   }
-
+      if (distance.as(
+              LengthUnit.Meter,
+              LatLng(currentElement.poiElement.lat!,
+                  currentElement.poiElement.lon!),
+              LatLng(poi.poiElement.lat!, poi.poiElement.lon!)) <=
+          radius * 2) {
+        unvisited.remove(poi);
+        clusterResult.cluster
+            .add(LatLng(poi.poiElement.lat!, poi.poiElement.lon!));
+        clusterPolygons(
+            ClusterResult(cluster: clusterResult.cluster, unvisited: unvisited),
+            poi);
+      }
+    }
+    return clusterResult;
   }
 
   Future<void> startPositionCheck() async {
