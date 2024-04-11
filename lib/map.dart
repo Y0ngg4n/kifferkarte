@@ -235,7 +235,7 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
       polybool.Polygon polygon = convertCenterToPolygon(filtered.first);
       ClusterResult clusterResult = clusterPolygons(
           ClusterResult(cluster: polygon, unvisited: filtered), filtered.first);
-      filtered = clusterResult.unvisited;
+      filtered = List.of(clusterResult.unvisited);
       clustered.add(clusterResult.cluster);
     }
     return clustered
@@ -269,7 +269,8 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
       clusterResult.cluster =
           clusterResult.cluster.union(convertCenterToPolygon(poi));
       clusterPolygons(
-          ClusterResult(cluster: clusterResult.cluster, unvisited: List.of(unvisited)),
+          ClusterResult(
+              cluster: clusterResult.cluster, unvisited: List.of(unvisited)),
           poi);
     }
     clusterResult.unvisited = List.of(unvisited);
