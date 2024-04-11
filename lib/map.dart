@@ -27,7 +27,7 @@ import 'package:vibration/vibration.dart';
 const double radius = 100.0;
 
 class ClusterResult {
-  List<LatLng> cluster;
+  polybool.Polygon cluster;
   List<Poi> unvisited;
 
   ClusterResult({required this.cluster, required this.unvisited});
@@ -112,9 +112,11 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
       var ways = await ref.read(wayProvider.notifier).getState();
       getPoiMarker(pois);
       // getCircles(pois);
-      getConvertedPolygons(pois);
-      getWays(ways);
-      ref.read(updatingProvider.notifier).set(false);
+      setState(() {
+        polys = getConvertedPolygons(pois);
+        getWays(ways);
+        ref.read(updatingProvider.notifier).set(false);
+      });
     });
   }
 
@@ -221,22 +223,23 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
     });
   }
 
-  void getConvertedPolygons(List<Poi> elements) {
+  List<Polygon> getConvertedPolygons(List<Poi> elements) {
     var filtered = elements
         .where((element) =>
             element.poiElement.lat != null && element.poiElement.lon != null)
         .toList();
-    List<List<LatLng>> clustered = [];
+    List<polybool.Polygon> clustered = [];
     while (filtered.length > 0) {
+      polybool.Polygon polygon = convertCenterToPolygon(filtered.first);
       ClusterResult clusterResult = clusterPolygons(
-          ClusterResult(cluster: [
-            LatLng(
-                filtered.first.poiElement.lat!, filtered.first.poiElement.lon!)
-          ], unvisited: filtered),
-          filtered.first);
+          ClusterResult(cluster: polygon, unvisited: filtered), filtered.first);
       filtered = clusterResult.unvisited;
       clustered.add(clusterResult.cluster);
     }
+    return clustered
+        .map((e) => Polygon(
+            points: e.regions.first.map((k) => LatLng(k.x, k.y)).toList()))
+        .toList();
   }
 
   ClusterResult clusterPolygons(
@@ -257,14 +260,25 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
               LatLng(poi.poiElement.lat!, poi.poiElement.lon!)) <=
           radius * 2) {
         unvisited.remove(poi);
-        clusterResult.cluster
-            .add(LatLng(poi.poiElement.lat!, poi.poiElement.lon!));
+        // TODO: Make shure clusterResult is a pointer
+        clusterResult.cluster =
+            clusterResult.cluster.union(convertCenterToPolygon(poi));
         clusterPolygons(
             ClusterResult(cluster: clusterResult.cluster, unvisited: unvisited),
             poi);
       }
     }
     return clusterResult;
+  }
+
+  polybool.Polygon convertCenterToPolygon(Poi poi) {
+    LatLng center = LatLng(poi.poiElement.lat!, poi.poiElement.lon!);
+    List<LatLng> pointsOfPolygon = circleToPolygon(center, radius, 32);
+    return polybool.Polygon(regions: [
+      pointsOfPolygon
+          .map((e) => polybool.Coordinate(e.latitude, e.longitude))
+          .toList()
+    ]);
   }
 
   Future<void> startPositionCheck() async {
