@@ -111,12 +111,9 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
       var pois = await ref.read(poiProvider.notifier).getState();
       var ways = await ref.read(wayProvider.notifier).getState();
       getPoiMarker(pois);
-      // getCircles(pois);
-      setState(() {
-        polys = getConvertedPolygons(pois);
-        getWays(ways);
-        ref.read(updatingProvider.notifier).set(false);
-      });
+      getCircles(pois);
+      getWays(ways);
+      ref.read(updatingProvider.notifier).set(false);
     });
   }
 
@@ -202,7 +199,6 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
 
   void getCircles(List<Poi> elements) {
     Map<LatLng, CircleMarker> circleMarker = Map();
-    List<Polygon> polys = [];
     for (Poi poi in elements) {
       if (poi.poiElement.lat == null || poi.poiElement.lon == null) continue;
       LatLng position = LatLng(poi.poiElement.lat!, poi.poiElement.lon!);
@@ -219,85 +215,7 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
 
     setState(() {
       circles = circleMarker.values.toList();
-      // circles = circleMarker.values.toList();
     });
-  }
-
-  List<Polygon> getConvertedPolygons(List<Poi> elements) {
-    print("getConvertedPolygons");
-    var filtered = elements
-        .where((element) =>
-            element.poiElement.lat != null && element.poiElement.lon != null)
-        .toList();
-    List<polybool.Polygon> clustered = [];
-    while (filtered.length > 0) {
-      print("while");
-      polybool.Polygon polygon = convertCenterToPolygon(filtered.first);
-      Poi current = filtered.first;
-      filtered.remove(current);
-      ClusterResult clusterResult = clusterPolygons(
-          ClusterResult(cluster: polygon, unvisited: filtered), current);
-      filtered = List.of(clusterResult.unvisited);
-      clustered.add(clusterResult.cluster);
-    }
-    print("after while");
-    return clustered
-        .map((e) => Polygon(
-            isFilled: true,
-            color: Colors.red.withOpacity(0.25),
-            borderColor: Colors.red,
-            borderStrokeWidth: 3,
-            points: e.regions.first.map((k) => LatLng(k.x, k.y)).toList()))
-        .toList();
-  }
-
-  ClusterResult clusterPolygons(
-      ClusterResult clusterResult, Poi currentElement) {
-    print("before cluster unvisited length: ${clusterResult.unvisited.length}");
-
-    if (clusterResult.unvisited.length == 0) {
-      // abort
-      return clusterResult;
-    }
-    List<Poi> unvisited = List.of(clusterResult.unvisited).toList();
-    // there is a first element
-    for (int c = 0; c < unvisited.length; c++) {
-      Distance distance = Distance();
-      Poi poi = unvisited[c];
-      if (!(distance.as(
-              LengthUnit.Meter,
-              LatLng(currentElement.poiElement.lat!,
-                  currentElement.poiElement.lon!),
-              LatLng(poi.poiElement.lat!, poi.poiElement.lon!)) <=
-          radius * 2)) {
-        continue;
-      }
-      unvisited.remove(poi);
-      // TODO: Make shure clusterResult is a pointer
-      // clusterResult.cluster =
-      //     clusterResult.cluster.union(convertCenterToPolygon(poi));
-      ClusterResult newResult = clusterPolygons(
-          ClusterResult(
-              cluster: clusterResult.cluster, unvisited: List.of(unvisited)),
-          poi);
-      unvisited = newResult.unvisited;
-      clusterResult = newResult;
-      c = 0;
-    }
-
-    print("after cluster unvisited length: ${clusterResult.unvisited.length}");
-
-    return clusterResult;
-  }
-
-  polybool.Polygon convertCenterToPolygon(Poi poi) {
-    LatLng center = LatLng(poi.poiElement.lat!, poi.poiElement.lon!);
-    List<LatLng> pointsOfPolygon = circleToPolygon(center, radius, 32);
-    return polybool.Polygon(regions: [
-      pointsOfPolygon
-          .map((e) => polybool.Coordinate(e.latitude, e.longitude))
-          .toList()
-    ]);
   }
 
   Future<void> startPositionCheck() async {
