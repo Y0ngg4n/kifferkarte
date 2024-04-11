@@ -275,7 +275,7 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
       unvisited.remove(poi);
       // TODO: Make shure clusterResult is a pointer
       // clusterResult.cluster =
-      //     clusterResult.cluster.union(convertCenterToPolygon(poi));
+      clusterResult.cluster.union(convertCenterToPolygon(poi));
       ClusterResult newResult = clusterPolygons(
           ClusterResult(
               cluster: clusterResult.cluster, unvisited: List.of(unvisited)),
@@ -292,7 +292,7 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
 
   polybool.Polygon convertCenterToPolygon(Poi poi) {
     LatLng center = LatLng(poi.poiElement.lat!, poi.poiElement.lon!);
-    List<LatLng> pointsOfPolygon = circleToPolygon(center, radius, 32);
+    List<LatLng> pointsOfPolygon = circleToPolygon(center, radius, 10);
     return polybool.Polygon(regions: [
       pointsOfPolygon
           .map((e) => polybool.Coordinate(e.latitude, e.longitude))
