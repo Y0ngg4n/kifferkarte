@@ -240,8 +240,13 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
       filtered = List.of(clusterResult.unvisited);
       clustered.add(clusterResult.cluster);
     }
+    print("after while");
     return clustered
         .map((e) => Polygon(
+            isFilled: true,
+            color: Colors.red.withOpacity(0.25),
+            borderColor: Colors.red,
+            borderStrokeWidth: 3,
             points: e.regions.first.map((k) => LatLng(k.x, k.y)).toList()))
         .toList();
   }
