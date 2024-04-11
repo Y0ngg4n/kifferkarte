@@ -224,12 +224,14 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
   }
 
   List<Polygon> getConvertedPolygons(List<Poi> elements) {
+    print("getConvertedPolygons");
     var filtered = elements
         .where((element) =>
             element.poiElement.lat != null && element.poiElement.lon != null)
         .toList();
     List<polybool.Polygon> clustered = [];
     while (filtered.length > 0) {
+      print("while");
       polybool.Polygon polygon = convertCenterToPolygon(filtered.first);
       ClusterResult clusterResult = clusterPolygons(
           ClusterResult(cluster: polygon, unvisited: filtered), filtered.first);
@@ -248,26 +250,29 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
       // abort
       return clusterResult;
     }
+    print("unvisited length: ${clusterResult.unvisited.length}");
     List<Poi> unvisited = List.of(clusterResult.unvisited).toList();
     // there is a first element
     for (Poi poi in clusterResult.unvisited) {
       Distance distance = Distance();
 
-      if (distance.as(
+      if (!(distance.as(
               LengthUnit.Meter,
               LatLng(currentElement.poiElement.lat!,
                   currentElement.poiElement.lon!),
               LatLng(poi.poiElement.lat!, poi.poiElement.lon!)) <=
-          radius * 2) {
-        unvisited.remove(poi);
-        // TODO: Make shure clusterResult is a pointer
-        clusterResult.cluster =
-            clusterResult.cluster.union(convertCenterToPolygon(poi));
-        clusterPolygons(
-            ClusterResult(cluster: clusterResult.cluster, unvisited: unvisited),
-            poi);
+          radius * 2)) {
+        continue;
       }
+      unvisited.remove(poi);
+      // TODO: Make shure clusterResult is a pointer
+      clusterResult.cluster =
+          clusterResult.cluster.union(convertCenterToPolygon(poi));
+      clusterPolygons(
+          ClusterResult(cluster: clusterResult.cluster, unvisited: List.of(unvisited)),
+          poi);
     }
+    clusterResult.unvisited = List.of(unvisited);
     return clusterResult;
   }
 
