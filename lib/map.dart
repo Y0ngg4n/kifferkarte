@@ -233,8 +233,10 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
     while (filtered.length > 0) {
       print("while");
       polybool.Polygon polygon = convertCenterToPolygon(filtered.first);
+      Poi current = filtered.first;
+      filtered.remove(current);
       ClusterResult clusterResult = clusterPolygons(
-          ClusterResult(cluster: polygon, unvisited: filtered), filtered.first);
+          ClusterResult(cluster: polygon, unvisited: filtered), current);
       filtered = List.of(clusterResult.unvisited);
       clustered.add(clusterResult.cluster);
     }
@@ -246,16 +248,17 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
 
   ClusterResult clusterPolygons(
       ClusterResult clusterResult, Poi currentElement) {
+    print("before cluster unvisited length: ${clusterResult.unvisited.length}");
+
     if (clusterResult.unvisited.length == 0) {
       // abort
       return clusterResult;
     }
-    print("unvisited length: ${clusterResult.unvisited.length}");
     List<Poi> unvisited = List.of(clusterResult.unvisited).toList();
     // there is a first element
-    for (Poi poi in clusterResult.unvisited) {
+    for (int c = 0; c < unvisited.length; c++) {
       Distance distance = Distance();
-
+      Poi poi = unvisited[c];
       if (!(distance.as(
               LengthUnit.Meter,
               LatLng(currentElement.poiElement.lat!,
@@ -268,12 +271,17 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
       // TODO: Make shure clusterResult is a pointer
       clusterResult.cluster =
           clusterResult.cluster.union(convertCenterToPolygon(poi));
-      clusterPolygons(
+      ClusterResult newResult = clusterPolygons(
           ClusterResult(
               cluster: clusterResult.cluster, unvisited: List.of(unvisited)),
           poi);
+      unvisited = newResult.unvisited;
+      clusterResult = newResult;
+      c = 0;
     }
-    clusterResult.unvisited = List.of(unvisited);
+
+    print("after cluster unvisited length: ${clusterResult.unvisited.length}");
+
     return clusterResult;
   }
 
