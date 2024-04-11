@@ -97,6 +97,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.6"
+  dart_earcut:
+    dependency: transitive
+    description:
+      name: dart_earcut
+      sha256: "41b493147e30a051efb2da1e3acb7f38fe0db60afba24ac1ea5684cee272721e"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.0"
   dbus:
     dependency: transitive
     description:
@@ -249,26 +257,29 @@ packages:
   flutter_map:
     dependency: "direct main"
     description:
-      name: flutter_map
-      sha256: cda8d72135b697f519287258b5294a57ce2f2a5ebf234f0e406aad4dc14c9399
-      url: "https://pub.dev"
-    source: hosted
-    version: "6.1.0"
+      path: "."
+      ref: HEAD
+      resolved-ref: "8db992f630e6e84dd88eca57e76f11569db5f427"
+      url: "https://github.com/Y0ngg4n/flutter_map.git"
+    source: git
+    version: "7.0.0-dev.1"
   flutter_map_cache:
     dependency: "direct main"
     description:
-      name: flutter_map_cache
-      sha256: "5539033bbfbc0a663f3a038f223a36b472974d6613ce8f84fe7762eeff38aa5a"
-      url: "https://pub.dev"
-    source: hosted
+      path: flutter_map_cache
+      ref: HEAD
+      resolved-ref: ecfc91bb594cac84cdcbad7865ca6680472497ef
+      url: "https://github.com/Y0ngg4n/flutter_map_plugins.git"
+    source: git
     version: "1.5.0"
   flutter_map_location_marker:
     dependency: "direct main"
     description:
-      name: flutter_map_location_marker
-      sha256: "5873a47606b092bf181b6d17dd42a124e9a8d5d9caad58b5f98fc182e799994f"
-      url: "https://pub.dev"
-    source: hosted
+      path: "."
+      ref: HEAD
+      resolved-ref: bb62fe1086891658eacc133ef2b83eeaac78fb3b
+      url: "https://github.com/Y0ngg4n/flutter_map_location_marker.git"
+    source: git
     version: "8.0.8"
   flutter_riverpod:
     dependency: "direct main"

@@ -198,23 +198,17 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
   }
 
   void getCircles(List<Poi> elements) {
-    Map<LatLng, CircleMarker> circleMarker = Map();
+    List<Polygon> polys = [];
     for (Poi poi in elements) {
       if (poi.poiElement.lat == null || poi.poiElement.lon == null) continue;
       LatLng position = LatLng(poi.poiElement.lat!, poi.poiElement.lon!);
-      circleMarker[position] = CircleMarker(
-          // Experimentation
-          // anchorPos: AnchorPos.exactly(Anchor(40, 30)),
-          point: position,
-          color: Colors.blue.withOpacity(0.25),
-          borderColor: Colors.red,
-          borderStrokeWidth: 0,
-          radius: radius,
-          useRadiusInMeter: true);
+      List<LatLng> points = circleToPolygon(position, radius, 32);
+      polys.add(Polygon(
+          points: points, isFilled: true, color: Colors.red.withOpacity(0.25)));
     }
 
     setState(() {
-      circles = circleMarker.values.toList();
+      this.polys = polys;
     });
   }
 
