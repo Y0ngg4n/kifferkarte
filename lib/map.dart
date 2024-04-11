@@ -26,6 +26,13 @@ import 'package:vibration/vibration.dart';
 
 const double radius = 100.0;
 
+class ClusterResult {
+  List<LatLng> cluster;
+  List<Poi> unvisited;
+
+  ClusterResult({required this.cluster, required this.unvisited});
+}
+
 class MapWidget extends ConsumerStatefulWidget {
   FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
   MapWidget({super.key, required this.flutterLocalNotificationsPlugin});
@@ -221,21 +228,26 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
         .toList());
   }
 
-  List<List<LatLng>> clusterPolygons(List<Poi> elements) {
-    List<Poi> unvisitedElements = List.of(elements).toList();
-    for (int i = 0; i < elements.length; i++) {
-      for (int z = 0; z < unvisitedElements.length; z++) {
+  ClusterResult clusterPolygons(ClusterResult clusterResult, Poi currentElement) {
+    if (clusterResult.unvisited.length == 0) { // abort
+      return clusterResult;
+    }
+   List<Poi> unvisited = List.of(clusterResult.unvisited).toList();
+    // there is a first element
+   for(Poi poi in clusterResult.unvisited){
         Distance distance = Distance();
+
         if (distance.as(
                 LengthUnit.Meter,
                 LatLng(
-                    elements[i].poiElement.lat!, elements[i].poiElement.lon!),
-                LatLng(unvisitedElements[z].poiElement.lat!,
-                    unvisitedElements[z].poiElement.lon!)) <=
-            radius * 2) {}
-      }
-      unvisitedElements.removeAt(i);
-    }
+                    currentElement.poiElement.lat!, currentElement.poiElement.lon!),
+                LatLng(poi.poiElement.lat!,
+                    poi.poiElement.lon!)) <=radius * 2){
+                unvisited.remove(poi);
+                clusterResult.cluster.add(LatLng(poi.poiElement.lat!, poi.poiElement.lon!));
+                clusterPolygons(ClusterResult(cluster: clusterResult.cluster, unvisited: unvisited), poi);
+   }
+
   }
 
   Future<void> startPositionCheck() async {
