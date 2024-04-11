@@ -1,12 +1,50 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:kifferkarte/map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:drift/drift.dart';
 import 'package:kifferkarte/provider_manager.dart';
 import 'package:kifferkarte/rules.dart';
 
+/// A notification action which triggers a App navigation event
+const String navigationActionId = 'id_3';
+const String taskChannel = "pro.obco.kifferkarte/zone";
+final StreamController<String?> selectNotificationStream =
+    StreamController<String?>.broadcast();
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+      FlutterLocalNotificationsPlugin();
+// initialise the plugin. app_icon needs to be a added as a drawable resource to the Android head project
+  const AndroidInitializationSettings initializationSettingsAndroid =
+      AndroidInitializationSettings('app_icon');
+  // final DarwinInitializationSettings initializationSettingsDarwin =
+  //     DarwinInitializationSettings(
+  //         onDidReceiveLocalNotification: onDidReceiveLocalNotification);
+  // final LinuxInitializationSettings initializationSettingsLinux =
+  //     LinuxInitializationSettings(defaultActionName: 'Open notification');
+  final InitializationSettings initializationSettings = InitializationSettings(
+    android: initializationSettingsAndroid,
+  );
+  // iOS: initializationSettingsDarwin,
+  // macOS: initializationSettingsDarwin,);
+  // linux: initializationSettingsLinux);
+  await flutterLocalNotificationsPlugin.initialize(initializationSettings,
+      onDidReceiveNotificationResponse:
+          (NotificationResponse notificationResponse) {
+    switch (notificationResponse.notificationResponseType) {
+      case NotificationResponseType.selectedNotification:
+        selectNotificationStream.add(notificationResponse.payload);
+        break;
+      case NotificationResponseType.selectedNotificationAction:
+        if (notificationResponse.actionId == navigationActionId) {
+          selectNotificationStream.add(notificationResponse.payload);
+        }
+        break;
+    }
+  });
   runApp(Kifferkarte());
 }
 
@@ -16,6 +54,12 @@ class Kifferkarte extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+        FlutterLocalNotificationsPlugin();
+    var android =
+        flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>();
+    android?.requestNotificationsPermission();
     return ProviderScope(
         child: MaterialApp(
       title: 'Kifferkarte (Beta)',
@@ -38,13 +82,21 @@ class Kifferkarte extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
         useMaterial3: true,
       ),
-      home: KifferkarteWidget(title: 'Kifferkarte'),
+      home: KifferkarteWidget(
+        title: 'Kifferkarte',
+        flutterLocalNotificationsPlugin: flutterLocalNotificationsPlugin,
+      ),
     ));
   }
 }
 
 class KifferkarteWidget extends ConsumerStatefulWidget {
-  KifferkarteWidget({super.key, required this.title});
+  FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
+
+  KifferkarteWidget(
+      {super.key,
+      required this.title,
+      required this.flutterLocalNotificationsPlugin});
 
   // This widget is the home page of your application. It is stateful, meaning
   // that it has a State object (defined below) that contains fields that affect
@@ -77,9 +129,28 @@ class _KifferkarteWidgetState extends ConsumerState<KifferkarteWidget> {
     bool updating = ref.watch(updatingProvider);
     bool smokeable = false;
     DateTime now = DateTime.now();
+    const AndroidNotificationDetails androidNotificationDetails =
+        AndroidNotificationDetails(
+      taskChannel,
+      taskChannel,
+      channelDescription: "Kifferkarte Zone Notification",
+      actions: [],
+    );
+    const NotificationDetails notificationDetails =
+        NotificationDetails(android: androidNotificationDetails);
     if ((!inCircle && !inWay) ||
         (!inCircle && (now.hour < 7 || now.hour >= 20))) {
       smokeable = true;
+      widget.flutterLocalNotificationsPlugin.cancel(1);
+      widget.flutterLocalNotificationsPlugin.show(
+          1,
+          "Du kannst vermutlich hier kiffen",
+          "Du befindest dich gerade in keiner Zone",
+          notificationDetails);
+    } else {
+      widget.flutterLocalNotificationsPlugin.cancel(1);
+      widget.flutterLocalNotificationsPlugin.show(1, "Kiffen verboten",
+          "Du solltest hier nicht kiffen", notificationDetails);
     }
     return Scaffold(
       appBar: AppBar(
@@ -109,7 +180,9 @@ class _KifferkarteWidgetState extends ConsumerState<KifferkarteWidget> {
           children: [Rules()],
         ),
       ),
-      body: MapWidget(),
+      body: MapWidget(
+        flutterLocalNotificationsPlugin: widget.flutterLocalNotificationsPlugin,
+      ),
     );
   }
 }

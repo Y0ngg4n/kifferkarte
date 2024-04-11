@@ -27,14 +27,15 @@ import 'package:vibration/vibration.dart';
 const double radius = 100.0;
 
 class MapWidget extends ConsumerStatefulWidget {
-  MapWidget({super.key});
-
+  FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
+  MapWidget({super.key, required this.flutterLocalNotificationsPlugin});
   @override
   ConsumerState<MapWidget> createState() => _MapWidgetState();
 }
 
 class _MapWidgetState extends ConsumerState<MapWidget> {
   LocationManager locationManager = LocationManager();
+
   CacheStore _cacheStore = MemCacheStore();
   final _dio = Dio();
   List<Marker> marker = [];
@@ -45,6 +46,7 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
   bool followPosition = true;
   bool hasVibrator = false;
   var platformNotification;
+  bool mapReady = false;
 
   @override
   void initState() {
@@ -52,7 +54,6 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       locationManager.determinePosition();
       checkVibrator();
-      ref.read(poiProvider.notifier).getPois(ref);
       if (kIsWeb)
         setState(() {
           // _cacheStore = DbCacheStore(
@@ -64,7 +65,6 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
       else {
         getNormalCache();
       }
-      locationManager.startPositionCheck(ref);
       FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
           FlutterLocalNotificationsPlugin();
       var android =
@@ -100,7 +100,7 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
     _debounce = Timer(const Duration(milliseconds: 1000), () async {
       ref.read(updatingProvider.notifier).set(true);
       await ref.read(poiProvider.notifier).getPois(ref);
-      await ref.read(wayProvider.notifier).getWays();
+      await ref.read(wayProvider.notifier).getWays(ref);
       var pois = await ref.read(poiProvider.notifier).getState();
       var ways = await ref.read(wayProvider.notifier).getState();
       getPoiMarker(pois);
@@ -279,6 +279,16 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
     });
   }
 
+  Future<void> startPositionCheck() async {
+    if (!(await locationManager.startPositionCheck(ref, () {
+      update();
+    }))) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(
+              "Konnte aktuelle Position nicht finden. Überprüfe dass dein GPS aktiviert ist")));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     bool vibrate = ref.watch(vibrateProvider);
@@ -303,9 +313,9 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
                       store: _cacheStore)),
               CurrentLocationLayer(
                 alignPositionOnUpdate:
-                    followPosition ? AlignOnUpdate.always : AlignOnUpdate.once,
+                    followPosition ? AlignOnUpdate.always : AlignOnUpdate.never,
                 alignDirectionOnUpdate:
-                    rotateMap ? AlignOnUpdate.always : AlignOnUpdate.once,
+                    rotateMap ? AlignOnUpdate.always : AlignOnUpdate.never,
               ),
               PolygonLayer(
                 polygons: polys,
@@ -337,15 +347,21 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
                 onPointerUp: (event, point) {
                   update();
                 },
-                onMapReady: () {
+                onMapReady: () async {
+                  await startPositionCheck();
+                  setState(() {
+                    mapReady = true;
+                  });
+
                   if (position != null) {
+                    ref.read(poiProvider.notifier).getPois(ref);
                     mapController.move(
                         LatLng(position.latitude, position.longitude), 12);
                   }
                 },
                 initialCenter: LatLng(51.351, 10.591),
                 initialZoom: 7)),
-        if (15 - mapController.camera.zoom.toInt() > 0)
+        if (mapReady && 15 - mapController.camera.zoom.toInt() > 0)
           Positioned(
               child: Container(
             color: Colors.white.withOpacity(0.75),
@@ -367,7 +383,8 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
               heroTag: "myLocation",
               child:
                   Icon(followPosition ? Icons.navigation : Icons.my_location),
-              onPressed: () {
+              onPressed: () async {
+                await startPositionCheck();
                 setState(() {
                   followPosition = !followPosition;
                 });

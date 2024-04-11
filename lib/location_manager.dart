@@ -14,22 +14,38 @@ import 'package:point_in_polygon/point_in_polygon.dart' as pip;
 class LocationManager {
   final GeolocatorPlatform _geolocatorPlatform = GeolocatorPlatform.instance;
   StreamSubscription<Position>? _positionStreamSubscription;
+  StreamSubscription<Position>? _updatePositionStreamSubscription;
   bool listeningToPosition = false;
   Position? lastPosition;
+  bool serviceEnabled = true;
+  LocationPermission permission = LocationPermission.always;
 
   Future<Position?> determinePosition() async {
-    bool serviceEnabled;
-    LocationPermission permission;
+    await checkPermissions();
+    // When we reach here, permissions are granted and we can
+    // continue accessing the position of the device.
+    try {
+      Position currentPosition = await Geolocator.getCurrentPosition(
+        forceAndroidLocationManager: true,
+        timeLimit: Duration(seconds: 5),
+      );
+      lastPosition = currentPosition;
+      return lastPosition;
+    } catch (Exception) {
+      return lastPosition;
+    }
+  }
 
+  Future<bool> checkPermissions() async {
     // // Test if location services are enabled.
-    // serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    // if (!serviceEnabled) {
-    //   // Location services are not enabled don't continue
-    //   // accessing the position and request users of the
-    //   // App to enable the location services.
-    //   print('Location services are disabled.');
-    //   Geolocator.openLocationSettings();
-    // }
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      // Location services are not enabled don't continue
+      // accessing the position and request users of the
+      // App to enable the location services.
+      print('Location services are disabled.');
+      Geolocator.openLocationSettings();
+    }
 
     permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
@@ -45,7 +61,7 @@ class LocationManager {
         if (permission == LocationPermission.denied) {
           print('Location permissions are denied');
           permission = await Geolocator.requestPermission();
-          return null;
+          return false;
         }
       }
     }
@@ -54,34 +70,37 @@ class LocationManager {
       // Permissions are denied forever, handle appropriately.
       print(
           'Location permissions are permanently denied, we cannot request permissions.');
-      return null;
+      return false;
     }
-
-    // When we reach here, permissions are granted and we can
-    // continue accessing the position of the device.
-    try {
-      Position currentPosition = await Geolocator.getCurrentPosition(
-        forceAndroidLocationManager: true,
-        timeLimit: Duration(seconds: 5),
-      );
-      lastPosition = currentPosition;
-      return lastPosition;
-    } catch (Exception) {
-      return lastPosition;
-    }
+    return true;
   }
 
-  Future<void> startPositionCheck(WidgetRef ref) async {
+  Future<bool> startPositionCheck(WidgetRef ref, Function callUpdate) async {
     _positionStreamSubscription?.cancel();
+    _updatePositionStreamSubscription?.cancel();
+    if (!(await checkPermissions())) {
+      print("Check permission faileds");
+      return false;
+    }
+    print(
+        "Service Status ${await _geolocatorPlatform.isLocationServiceEnabled()}");
     var stream = _geolocatorPlatform.getPositionStream(
-        locationSettings: LocationSettings(distanceFilter: 1));
+        locationSettings: LocationSettings(distanceFilter: 3));
     _positionStreamSubscription = stream.listen((event) {
       print("position via stream");
       checkPositionInCircle(ref, event);
       lastPosition = event;
       ref.read(lastPositionProvider.notifier).set(event);
     });
+
+    var updateStream = _geolocatorPlatform.getPositionStream(
+        locationSettings: LocationSettings(distanceFilter: 10));
+
+    _updatePositionStreamSubscription = updateStream.listen((event) {
+      callUpdate();
+    });
     listeningToPosition = true;
+    return true;
   }
 
   void stopPositionCheck(WidgetRef ref) async {
@@ -92,7 +111,6 @@ class LocationManager {
   Future<void> checkPositionInCircle(WidgetRef ref, Position? position) async {
     if (position == null) return;
     List<Poi> pois = ref.watch(poiProvider);
-    print(pois.length);
     List<Way> ways = ref.watch(wayProvider);
     Distance distance = const Distance();
     bool inCircle = false;
@@ -127,12 +145,10 @@ class LocationManager {
         vibrate(ref);
         await Future.delayed(const Duration(seconds: 1));
         vibrate(ref);
-        ref.read(inCircleProvider.notifier).set(true);
-        ref.read(inCircleProvider.notifier).set(inWay);
       } else {
         vibrate(ref);
-        ref.read(inCircleProvider.notifier).set(false);
       }
+      ref.read(inCircleProvider.notifier).set(inCircle);
     }
     if (currentInWayState != inWay) {
       if (inWay) {
@@ -141,10 +157,10 @@ class LocationManager {
         vibrate(ref);
         await Future.delayed(const Duration(milliseconds: 500));
         vibrate(ref);
-        ref.read(inWayProvider.notifier).set(true);
       } else {
-        ref.read(inWayProvider.notifier).set(false);
+        vibrate(ref);
       }
+      ref.read(inWayProvider.notifier).set(inWay);
     } else {
       print("Chek position in circle");
     }

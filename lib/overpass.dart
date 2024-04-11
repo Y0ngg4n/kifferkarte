@@ -140,6 +140,24 @@ class Overpass {
     }
   }
 
+  static Future<OverpassResponse?> getPedestrianWaysBoundariesInRadius(
+      LatLng? position, int radius) async {
+    if (position == null) return null;
+    String body = "[out:json][timeout:20][maxsize:536870912];\n";
+    body +=
+        "way[highway=pedestrian](around:${radius},${position.latitude},${position.longitude});";
+    body += "(._;>;);out body;";
+    http.Response response = await http.post(Uri.parse(overpassUrl),
+        headers: {"charset": "utf-8"}, body: body);
+    if (response.statusCode == 200) {
+      return OverpassResponse.fromJson(
+          jsonDecode(utf8.decode(response.bodyBytes)));
+    } else {
+      print(response.body);
+      return null;
+    }
+  }
+
   static Future<OverpassResponse?> getBuildingBoundariesInBounds(
       LatLngBounds? latLngBounds, LatLng position) async {
     if (latLngBounds == null) return null;

@@ -44,7 +44,7 @@
         pkgs.mkShell {
           # Fix an issue with Flutter using an older version of aapt2, which does not know
           # an used parameter.
-          GRADLE_OPTS = "-Dorg.gradle.project.android.aapt2FromMavenOverride=${android-sdk}/share/android-sdk/build-tools/32.0.0/aapt2";
+          GRADLE_OPTS = "-Dorg.gradle.project.android.aapt2FromMavenOverride=${android-sdk}/share/android-sdk/build-tools/34.0.0/aapt2";
           ANDROID_HOME = "${android-sdk}/share/android-sdk";
           ANDROID_SDK_ROOT = "${android-sdk}/share/android-sdk";
 

@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
@@ -18,29 +19,36 @@ class PoiNotifier extends StateNotifier<List<Poi>> {
 
   Future<void> getPois(WidgetRef ref) async {
     OverpassResponse? overpassResponse;
-    if (mapController.camera.zoom < 15) {
-      Position? position = ref.read(lastPositionProvider.notifier).getState();
-      if (position != null) {
-        overpassResponse = await Overpass.getKifferPoiInRadius(
-            LatLng(position.latitude, position.longitude), radius.toInt() * 3);
+    try {
+      if (mapController.camera.zoom < 15) {
+        Position? position = ref.read(lastPositionProvider.notifier).getState();
+        if (position != null) {
+          overpassResponse = await Overpass.getKifferPoiInRadius(
+              LatLng(position.latitude, position.longitude),
+              radius.toInt() * 3);
+        } else {
+          overpassResponse = await Overpass.getKifferPoiInRadius(
+              mapController.camera.center, radius.toInt() * 3);
+        }
       } else {
-        overpassResponse = await Overpass.getKifferPoiInRadius(
-            mapController.camera.center, radius.toInt() * 3);
+        overpassResponse = await Overpass.getKifferPoiInBounds(
+            mapController.camera.visibleBounds);
       }
-    } else {
-      overpassResponse = await Overpass.getKifferPoiInBounds(
-          mapController.camera.visibleBounds);
-    }
-    if (overpassResponse != null) {
-      List<Poi> pois = [];
-      List<int> osmIds = [];
-      for (PoiElement element in overpassResponse.elements) {
-        pois.add(Poi(element));
-        osmIds.add(element.id);
+      if (overpassResponse != null) {
+        List<Poi> pois = [];
+        List<int> osmIds = [];
+        for (PoiElement element in overpassResponse.elements) {
+          pois.add(Poi(element));
+          osmIds.add(element.id);
+        }
+        state = pois;
+      } else {
+        print("null");
       }
-      state = pois;
-    } else {
-      print("null");
+    } catch (Exception) {
+      ScaffoldMessenger.of(ref.context).showSnackBar(SnackBar(
+          content: Text(
+              "Konnte die Overpass API nicht erreichen. Überprüfe deine Internetverbindung oder versuche es zu einem späteren Zeitpunkt erneut")));
     }
   }
 
@@ -58,31 +66,44 @@ class WayNotifier extends StateNotifier<List<Way>> {
     state = [];
   }
 
-  Future<void> getWays() async {
-    if (mapController.camera.zoom < 13) {
-      state = [];
-      return;
-    }
-
-    OverpassResponse? overpassResponse =
-        await Overpass.getPedestrianWaysBoundariesInBounds(
-            mapController.camera.visibleBounds);
-    if (overpassResponse != null) {
-      List<Way> ways = [];
-      for (PoiElement building in overpassResponse.elements
-          .where((element) => element.type == "way")) {
-        List<LatLng> bounds = [];
-        if (building.nodes != null) {
-          for (int node in building.nodes!) {
-            bounds.addAll(overpassResponse.elements
-                .where((element) => element.id == node)
-                .map((e) => LatLng(e.lat!, e.lon!))
-                .toList());
-          }
+  Future<void> getWays(WidgetRef ref) async {
+    OverpassResponse? overpassResponse;
+    try {
+      if (mapController.camera.zoom < 15) {
+        Position? position = ref.read(lastPositionProvider.notifier).getState();
+        if (position != null) {
+          overpassResponse = await Overpass.getPedestrianWaysBoundariesInRadius(
+              LatLng(position.latitude, position.longitude),
+              radius.toInt() * 3);
+        } else {
+          overpassResponse = await Overpass.getPedestrianWaysBoundariesInRadius(
+              mapController.camera.center, radius.toInt() * 3);
         }
-        ways.add(Way(building.id, bounds));
+      } else {
+        overpassResponse = await Overpass.getPedestrianWaysBoundariesInBounds(
+            mapController.camera.visibleBounds);
       }
-      state = ways;
+      if (overpassResponse != null) {
+        List<Way> ways = [];
+        for (PoiElement building in overpassResponse.elements
+            .where((element) => element.type == "way")) {
+          List<LatLng> bounds = [];
+          if (building.nodes != null) {
+            for (int node in building.nodes!) {
+              bounds.addAll(overpassResponse.elements
+                  .where((element) => element.id == node)
+                  .map((e) => LatLng(e.lat!, e.lon!))
+                  .toList());
+            }
+          }
+          ways.add(Way(building.id, bounds));
+        }
+        state = ways;
+      }
+    } catch (Exception) {
+      ScaffoldMessenger.of(ref.context).showSnackBar(SnackBar(
+          content: Text(
+              "Konnte die Overpass API nicht erreichen. Überprüfe deine Internetverbindung oder versuche es zu einem späteren Zeitpunkt erneut")));
     }
   }
 
