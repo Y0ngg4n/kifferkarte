@@ -274,8 +274,8 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
       }
       unvisited.remove(poi);
       // TODO: Make shure clusterResult is a pointer
-      clusterResult.cluster =
-          clusterResult.cluster.union(convertCenterToPolygon(poi));
+      // clusterResult.cluster =
+      //     clusterResult.cluster.union(convertCenterToPolygon(poi));
       ClusterResult newResult = clusterPolygons(
           ClusterResult(
               cluster: clusterResult.cluster, unvisited: List.of(unvisited)),
