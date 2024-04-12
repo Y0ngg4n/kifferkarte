@@ -48,3 +48,5 @@ jobs:
           bundle install
           bundle exec fastlane update_plugins
           bundle exec fastlane beta
+         env:
+           RUBYOPT: '-rostruct'
