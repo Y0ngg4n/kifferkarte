@@ -15,6 +15,7 @@ import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:kifferkarte/location_manager.dart';
+import 'package:kifferkarte/lockscreen.dart';
 import 'package:kifferkarte/overpass.dart';
 import 'package:kifferkarte/provider_manager.dart';
 import 'package:kifferkarte/search.dart';
@@ -355,6 +356,21 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
                 setState(() {
                   rotateMap = !rotateMap;
                 });
+              },
+            )),
+        Positioned(
+            top: 150,
+            left: 10,
+            child: FloatingActionButton(
+              heroTag: "lock",
+              child: Icon(Icons.lock),
+              onPressed: () {
+                Navigator.of(context).push(DialogRoute(
+                  context: context,
+                  builder: (context) {
+                    return Lockscreen();
+                  },
+                ));
               },
             )),
         if (hasVibrator)
