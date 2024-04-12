@@ -23,6 +23,7 @@ jobs:
           echo "keyAlias=$KEYSTORE_KEY_ALIAS" >> android/key.properties
           echo "storePassword=$KEYSTORE_STORE_PASSWORD" >> android/key.properties
           echo "keyPassword=$KEYSTORE_KEY_PASSWORD" >> android/key.properties
+          echo "storeFile=../key.jks" >> android/key.properties
           cat android/key.properties
         env:
           ANDROID_KEYSTORE_FILE: ${{ secrets.ANDROID_KEYSTORE_FILE }}
