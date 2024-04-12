@@ -362,6 +362,10 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
                 setState(() {
                   followPosition = !followPosition;
                 });
+
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                    content: Text("Folgen deiner Position " +
+                        (followPosition ? "aktiviert" : "deaktiviert"))));
                 if (position == null) {
                   ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text("Keine Position bekannt")));
@@ -382,6 +386,9 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
               child: Icon(rotateMap ? (Icons.crop_rotate) : (Icons.map)),
               onPressed: () {
                 setState(() {
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: Text("Rotation der Karte " +
+                          (rotateMap ? "deaktiviert" : "aktiviert"))));
                   rotateMap = !rotateMap;
                 });
               },
@@ -409,6 +416,9 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
                 heroTag: "vibrate",
                 child: Icon(vibrate ? (Icons.vibration) : (Icons.smartphone)),
                 onPressed: () async {
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: Text("Vibration " +
+                          (vibrate ? "deaktiviert" : "aktiviert"))));
                   ref.read(vibrateProvider.notifier).set(!vibrate);
                 },
               )),
