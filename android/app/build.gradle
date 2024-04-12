@@ -91,3 +91,6 @@ dependencies {
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.2.2'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 }
+configurations.implementation {
+   exclude group: 'com.google.android.gms'
+}
