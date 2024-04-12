@@ -56,6 +56,17 @@ Die orangenen Polygone zeigen die Gebäudeumrisse an.
             textAlign: TextAlign.left,
           ),
           Text(
+            "Farblegende",
+            style: TextStyle(fontSize: 20),
+          ),
+          Text(
+            """Schwarz: Spielplatz
+Pink: Kindergarten/Kita..
+Blau: Schule
+Grün: Sportanlage""",
+            textAlign: TextAlign.left,
+          ),
+          Text(
             "FAQ",
             style: TextStyle(fontSize: 20),
           ),

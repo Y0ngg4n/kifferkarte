@@ -223,9 +223,13 @@ class OverpassResponse {
   double version;
   String generator;
   List<PoiElement> elements;
+  List<Map<String, String>> tags;
 
   OverpassResponse(
-      {required this.version, required this.generator, required this.elements});
+      {required this.version,
+      required this.generator,
+      required this.elements,
+      required this.tags});
 
   factory OverpassResponse.fromJson(Map<String, dynamic> json) {
     return OverpassResponse(
@@ -234,6 +238,9 @@ class OverpassResponse {
         elements: json['elements']
             .map((e) => PoiElement.fromJson(e))
             .toList()
-            .cast<PoiElement>());
+            .cast<PoiElement>(),
+        tags: json['tags'] != null
+            ? json['tags'].toList().cast < Map<String, String>()
+            : []);
   }
 }

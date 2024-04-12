@@ -166,11 +166,16 @@ class _KifferkarteWidgetState extends ConsumerState<KifferkarteWidget> {
               ? CircularProgressIndicator()
               : smokeable
                   ? Text("Kiffen vermutlich erlaubt")
-                  : Text("Kiffen nicht erlaubt"),
+                  : Text(
+                      "Kiffen nicht erlaubt",
+                      style: TextStyle(
+                          color: Colors.red, fontWeight: FontWeight.bold),
+                    ),
           if (!updating)
             Padding(
               padding: const EdgeInsets.all(8.0),
-              child: Icon(smokeable ? Icons.smoking_rooms : Icons.smoke_free),
+              child: Icon(smokeable ? Icons.smoking_rooms : Icons.smoke_free,
+                  color: smokeable ? Colors.black : Colors.red),
             )
         ],
       ),

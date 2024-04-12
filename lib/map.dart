@@ -184,14 +184,40 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
                 width: 80,
                 height: 80,
 
-                child: const Icon(
+                child: Icon(
                   Icons.location_pin,
                   size: 25,
-                  color: Colors.red,
+                  color: getPoiColor(e),
                 ),
               ))
           .toList();
     });
+  }
+
+  Color getPoiColor(Poi poi) {
+    Color color = Colors.red;
+    if (poi.poiElement.tags == null) return color;
+    print("Tags");
+    print(poi.poiElement.tags);
+    if (poi.poiElement.tags!.containsKey("leisure") &&
+        poi.poiElement.tags!.containsValue("playground")) {
+      color = Colors.black;
+    } else if ((poi.poiElement.tags!.containsKey("amenity") &&
+            poi.poiElement.tags!.containsValue("kindergarten")) ||
+        (poi.poiElement.tags!.containsKey("building") &&
+            poi.poiElement.tags!.containsValue("kindergarten")) ||
+        (poi.poiElement.tags!.containsKey("amenity") &&
+            poi.poiElement.tags!.containsValue("childcare")) ||
+        (poi.poiElement.tags!.containsKey("social_facility"))) {
+      color = Colors.pink;
+    } else if (poi.poiElement.tags!.containsKey("amenity") &&
+        poi.poiElement.tags!.containsValue("school")) {
+      color = Colors.blue;
+    } else if (poi.poiElement.tags!.containsKey("leisure")) {
+      color = Colors.green;
+    }
+
+    return color;
   }
 
   double toRadians(double degree) {
