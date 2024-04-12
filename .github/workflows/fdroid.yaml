@@ -27,9 +27,9 @@ jobs:
           cd fdroiddata
           git checkout pro.obco.kifferkarte
           cat metadata/pro.obco.kifferkarte.yml
-          sed -i "s/  - versionName: .*/  - versionName: ${{ env.version_number }}/g"  metadata/pro.obco.kifferkarte.yml
-          sed -i "s/    versionCode: .*/    versionCode: ${{ env.version_code }}/g"  metadata/pro.obco.kifferkarte.yml
-          sed -i "s/    commit: .*/    commit: ${{ env.version_number }}/g"  metadata/pro.obco.kifferkarte.yml
+          echo "- versionName: ${{ env.version_number }}" >> metadata/pro.obco.kifferkarte.yml
+          echo "  versionCode: ${{ env.version_code }}" >> metadata/pro.obco.kifferkarte.yml
+          echo "  commit: ${{ env.version_number }}" >> metadata/pro.obco.kifferkarte.yml
           sed -i "s/CurrentVersion: .*/CurrentVersion: ${{ env.version_number }}/g"  metadata/pro.obco.kifferkarte.yml
           sed -i "s/CurrentVersionCode: .*/CurrentVersionCode: ${{ env.version_code }}/g"  metadata/pro.obco.kifferkarte.yml
           cat metadata/pro.obco.kifferkarte.yml
