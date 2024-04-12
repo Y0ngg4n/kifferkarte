@@ -114,6 +114,10 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
       getPoiMarker(pois);
       getCircles(pois);
       getWays(ways);
+      getBuildings();
+      ref.read(poiProvider.notifier).set(Overpass.mapBuildingsToPoi(
+          ref.read(buildingProvider.notifier).getState(),
+          ref.read(poiProvider.notifier).getState()));
       ref.read(updatingProvider.notifier).set(false);
     });
   }
@@ -130,6 +134,30 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
                   : Colors.yellow.withOpacity(0.5),
               isFilled: true))
           .toList();
+    });
+  }
+
+  void getBuildings() async {
+    List<Polygon> polys = List.of(this.polys);
+    await ref.read(buildingProvider.notifier).getBuildingBoundaries(ref);
+    List<Poi> pois = ref.read(poiProvider.notifier).getState();
+    List<Building> buildings = ref.read(buildingProvider.notifier).getState();
+    for (Poi poi in pois) {
+      for (Building building in buildings) {
+        bool isSelected = poi != null &&
+            poi.building != null &&
+            poi.building!.id == building.id;
+        polys.add(Polygon(
+            points: building.boundaries,
+            isFilled: isSelected,
+            color: Color.fromRGBO(Colors.orangeAccent.red,
+                Colors.orangeAccent.green, Colors.orangeAccent.blue, 0.15),
+            borderColor: Colors.orange,
+            borderStrokeWidth: isSelected ? 2 : 0));
+      }
+    }
+    setState(() {
+      this.polys = polys;
     });
   }
 

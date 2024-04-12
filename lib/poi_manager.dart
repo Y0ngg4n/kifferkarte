@@ -33,3 +33,5 @@ class PoiElement {
         nodes: json['nodes'] != null ? List<int>.from(json['nodes']) : null);
   }
 }
+
+class PoiManager {}

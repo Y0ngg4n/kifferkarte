@@ -1,16 +1,36 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:flutter_map/flutter_map.dart';
 import 'package:kifferkarte/nomatim.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:http/http.dart' as http;
-
+import 'package:point_in_polygon/point_in_polygon.dart';
 import 'package:kifferkarte/poi_manager.dart';
 import 'package:kifferkarte/location_manager.dart';
 
 String overpassUrl = "https://overpass-api.de/api/interpreter";
 
 class Overpass {
+  static List<Poi> mapBuildingsToPoi(List<Building> buildings, List<Poi> pois) {
+    for (Building building in buildings) {
+      List<Point> bounds = building.boundaries
+          .map((e) => Point(y: e.latitude, x: e.longitude))
+          .toList();
+      for (Poi poi in pois) {
+        if (poi.poiElement.lat != null &&
+            poi.poiElement.lon != null &&
+            Poly.isPointInPolygon(
+                Point(y: poi.poiElement.lat!, x: poi.poiElement.lon!),
+                bounds)) {
+          print("its in poly");
+          poi.building = building;
+        }
+      }
+    }
+    return pois;
+  }
+
   static Future<OverpassResponse?> getAllPoiInRadius(
       int radius, LatLng position) async {
     String body = "[out:json][timeout:20][maxsize:536870912];";

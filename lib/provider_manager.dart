@@ -184,6 +184,47 @@ class LastPositionNotifier extends StateNotifier<Position?> {
   getState() => state;
 }
 
+class BuildingNotifier extends StateNotifier<List<Building>> {
+  BuildingNotifier() : super([]);
+  PoiManager poiManager = PoiManager();
+
+  void init() {
+    state = [];
+  }
+
+  Future<void> getBuildingBoundaries(WidgetRef ref) async {
+    if (mapController.camera.zoom < 13) {
+      state = [];
+      return;
+    }
+    var position = ref.read(lastPositionProvider.notifier).getState();
+    if (position == null) return;
+    OverpassResponse? overpassResponse =
+        await Overpass.getBuildingBoundariesInBounds(
+            mapController.camera.visibleBounds,
+            LatLng(position.latitude, position.longitude));
+    if (overpassResponse != null) {
+      List<Building> buildings = [];
+      for (PoiElement building in overpassResponse.elements
+          .where((element) => element.type == "way")) {
+        List<LatLng> bounds = [];
+        if (building.nodes != null) {
+          for (int node in building.nodes!) {
+            bounds.addAll(overpassResponse.elements
+                .where((element) => element.id == node)
+                .map((e) => LatLng(e.lat!, e.lon!))
+                .toList());
+          }
+        }
+        buildings.add(Building(building.id, bounds));
+      }
+      state = buildings;
+    }
+  }
+
+  getState() => state;
+}
+
 final poiProvider = StateNotifierProvider<PoiNotifier, List<Poi>>((ref) {
   return PoiNotifier();
 });
@@ -210,4 +251,8 @@ final vibrateProvider = StateNotifierProvider<VibrateNotifier, bool>((ref) {
 
 final updatingProvider = StateNotifierProvider<UpdatingNotifier, bool>((ref) {
   return UpdatingNotifier();
+});
+final buildingProvider =
+    StateNotifierProvider<BuildingNotifier, List<Building>>((ref) {
+  return BuildingNotifier();
 });
