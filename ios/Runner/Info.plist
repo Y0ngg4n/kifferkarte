@@ -45,5 +45,21 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+        // This is probably the only one you need. Background location is supported
+// by this -- the caveat is that a blue badge is shown in the status bar
+// when the app is using location service while in the background.
+<key>NSLocationWhenInUseUsageDescription</key>
+<true/>
+// Deprecated, use NSLocationAlwaysAndWhenInUseUsageDescription instead.
+<key>NSLocationAlwaysUsageDescription</key>
+<true/>
+
+// Use this very carefully. This key is required only if your iOS app
+// uses APIs that access the user’s location information at all times,
+// even if the app isn't running.
+<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+<true/>
+<key>UIBackgroundModes</key>
+<string>location</string>
 </dict>
 </plist>

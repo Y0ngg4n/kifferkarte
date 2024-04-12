@@ -7,6 +7,7 @@ import 'package:kifferkarte/map.dart';
 import 'package:kifferkarte/overpass.dart';
 import 'package:kifferkarte/poi_manager.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:location/location.dart';
 
 MapController mapController = MapController();
 
@@ -170,14 +171,14 @@ class UpdatingNotifier extends StateNotifier<bool> {
   getState() => state;
 }
 
-class LastPositionNotifier extends StateNotifier<Position?> {
+class LastPositionNotifier extends StateNotifier<LocationData?> {
   LastPositionNotifier() : super(null);
 
   void init() {
     state = null;
   }
 
-  void set(Position value) {
+  void set(LocationData value) {
     state = value;
   }
 
@@ -241,7 +242,7 @@ final inWayProvider = StateNotifierProvider<InWayNotifier, bool>((ref) {
 });
 
 final lastPositionProvider =
-    StateNotifierProvider<LastPositionNotifier, Position?>((ref) {
+    StateNotifierProvider<LastPositionNotifier, LocationData?>((ref) {
   return LastPositionNotifier();
 });
 

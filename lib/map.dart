@@ -20,6 +20,7 @@ import 'package:kifferkarte/overpass.dart';
 import 'package:kifferkarte/provider_manager.dart';
 import 'package:kifferkarte/search.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:location/location.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:polybool/polybool.dart' as polybool;
@@ -60,7 +61,6 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      locationManager.determinePosition();
       checkVibrator();
       if (kIsWeb)
         setState(() {
@@ -271,7 +271,8 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
     if (!(await locationManager.startPositionCheck(ref, () async {
       print("startPositionCheck");
       await update();
-      Position? position = ref.read(lastPositionProvider.notifier).getState();
+      LocationData? position =
+          ref.read(lastPositionProvider.notifier).getState();
       if (position != null) {
         locationManager.checkPositionInCircle(ref, position);
       }
@@ -285,7 +286,7 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
   @override
   Widget build(BuildContext context) {
     bool vibrate = ref.watch(vibrateProvider);
-    Position? position = ref.watch(lastPositionProvider);
+    LocationData? position = ref.watch(lastPositionProvider);
     bool updating = ref.watch(updatingProvider);
 
     return Stack(
@@ -359,11 +360,14 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
                     Duration(seconds: 10),
                     () async {
                       await update();
-                      Position? position =
+                      LocationData? position =
                           ref.read(lastPositionProvider.notifier).getState();
-                      if (position != null) {
+                      if (position != null &&
+                          position.latitude != null &&
+                          position.longitude != null) {
                         mapController.move(
-                            LatLng(position.latitude, position.longitude), 19);
+                            LatLng(position!.latitude!, position!.longitude!),
+                            19);
                         locationManager.checkPositionInCircle(ref, position);
                       }
                     },
@@ -409,8 +413,10 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
                 } else {
                   update();
                   await locationManager.checkPositionInCircle(ref, position);
-                  mapController.move(
-                      LatLng(position!.latitude, position!.longitude), 19);
+                  if (position.latitude != null || position.longitude != null) {
+                    mapController.move(
+                        LatLng(position!.latitude!, position!.longitude!), 19);
+                  }
                 }
               },
             )),

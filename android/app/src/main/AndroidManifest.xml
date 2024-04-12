@@ -6,6 +6,8 @@
 <uses-permission android:name="android.permissio.WAKE_LOCK" />
 <uses-permission android:name="android.hardware.location.gps" /> 
 <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
+<uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION"/>
+
     <application
         android:label="kifferkarte"
         android:name="${applicationName}"
