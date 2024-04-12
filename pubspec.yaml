@@ -58,6 +58,7 @@ dependencies:
   flutter_launcher_icons: ^0.13.1
   web: 0.4.2
   flutter_local_notifications: ^17.0.0
+  slide_to_act: ^2.0.2
 
 dev_dependencies:
   flutter_test:
