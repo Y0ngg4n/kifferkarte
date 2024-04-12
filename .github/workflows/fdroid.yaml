@@ -27,9 +27,23 @@ jobs:
           cd fdroiddata
           git checkout pro.obco.kifferkarte
           cat metadata/pro.obco.kifferkarte.yml
-          echo "- versionName: ${{ env.version_number }}" >> metadata/pro.obco.kifferkarte.yml
-          echo "  versionCode: ${{ env.version_code }}" >> metadata/pro.obco.kifferkarte.yml
-          echo "  commit: ${{ env.version_number }}" >> metadata/pro.obco.kifferkarte.yml
+          echo "  - versionName: ${{ env.version_number }}" >> metadata/pro.obco.kifferkarte.yml
+          echo "    versionCode: ${{ env.version_code }}" >> metadata/pro.obco.kifferkarte.yml
+          echo "    commit: ${{ env.version_number }}" >> metadata/pro.obco.kifferkarte.yml
+          echo "    output: build/app/outputs/flutter-apk/app-release.apk" >> metadata/pro.obco.kifferkarte.yml
+          echo "    srclibs:" >> metadata/pro.obco.kifferkarte.yml
+          echo "      - flutter@3.19.0" >> metadata/pro.obco.kifferkarte.yml
+          echo "    rm:" >> metadata/pro.obco.kifferkarte.yml
+          echo "      - ios" >> metadata/pro.obco.kifferkarte.yml
+          echo "      - linux" >> metadata/pro.obco.kifferkarte.yml
+          echo "      - macos" >> metadata/pro.obco.kifferkarte.yml
+          echo "      - test" >> metadata/pro.obco.kifferkarte.yml
+          echo "      - web" >> metadata/pro.obco.kifferkarte.yml
+          echo "      - windows" >> metadata/pro.obco.kifferkarte.yml
+          echo "    build:" >> metadata/pro.obco.kifferkarte.yml
+          echo '      - $$flutter$$/bin/flutter config --no-analytics' >> metadata/pro.obco.kifferkarte.yml
+          echo '      - $$flutter$$/bin/flutter packages pub get' >> metadata/pro.obco.kifferkarte.yml
+          echo '      - $$flutter$$/bin/flutter build apk' >> metadata/pro.obco.kifferkarte.yml
           sed -i "s/CurrentVersion: .*/CurrentVersion: ${{ env.version_number }}/g"  metadata/pro.obco.kifferkarte.yml
           sed -i "s/CurrentVersionCode: .*/CurrentVersionCode: ${{ env.version_code }}/g"  metadata/pro.obco.kifferkarte.yml
           cat metadata/pro.obco.kifferkarte.yml
