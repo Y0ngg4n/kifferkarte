@@ -40,6 +40,22 @@ Es werden ausschließlich die Öffentlichen Instanzen benutzt.
             textAlign: TextAlign.left,
           ),
           Text(
+            "Anleitung",
+            style: TextStyle(fontSize: 20),
+          ),
+          Text(
+            """Zoome mit den Fingern oder den Tasten in die Karte bis du Kreise siehst.
+Oder drücke auf das Navigationssymbol rechts unten und du springst direkt zu dir und folgst deiner Position mit der Karte.
+Verwende die zweite Taste von unden rechts um die Vibration ein und auszuschalten.
+Dadurch wirst du sofort über neue Zonenbegegnungen informiert.
+Suche mit der Lupe nach Orten. Drehe die Karte nach deiner Gyroskopausrichtung mit der zweiten Taste links oben
+und gehe zum Lockscreen durch das Schloss, da Android keine richtigen Backgroundlocations zulässt(Bitte PM wenn Idee).
+Die roten Zonen zeigen die 100 Meter an. Die gelben Polygone eine Fußgängerzone zwischen 7 und 20 Uhr und die grünen Polygone Fußgängerzonen außerhalb dieser Zeiten.
+Die orangenen Polygone zeigen die Gebäudeumrisse an.
+            """,
+            textAlign: TextAlign.left,
+          ),
+          Text(
             "FAQ",
             style: TextStyle(fontSize: 20),
           ),
