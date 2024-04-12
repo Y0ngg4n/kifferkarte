@@ -19,7 +19,7 @@ jobs:
           echo "version_number=${version_number}" >> $GITHUB_ENV
           echo "${{ env.version_number }}"
       - run: |
-          version_code=$(cat pubspec.yaml | grep "version: ${{ env.version_number }}+" | sed 's/version:.*+//g')
+          version_code=$(cat pubspec.yaml | grep "version:" | sed 's/version:.*+//g')
           echo "version_code=${version_code}" >> $GITHUB_ENV
           echo "${{ env.version_code }}"
       - run: |
