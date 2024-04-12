@@ -27,7 +27,7 @@ jobs:
           cd fdroiddata
           git checkout pro.obco.kifferkarte
           cat metadata/pro.obco.kifferkarte.yml
-          echo "  - versionName: ${{ env.version_number }}" >> metadata/pro.obco.kifferkarte.yml
+          echo "\n  - versionName: ${{ env.version_number }}" >> metadata/pro.obco.kifferkarte.yml
           echo "    versionCode: ${{ env.version_code }}" >> metadata/pro.obco.kifferkarte.yml
           echo "    commit: ${{ env.version_number }}" >> metadata/pro.obco.kifferkarte.yml
           echo "    output: build/app/outputs/flutter-apk/app-release.apk" >> metadata/pro.obco.kifferkarte.yml
