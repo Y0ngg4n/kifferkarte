@@ -94,5 +94,5 @@ dependencies {
 configurations.implementation {
     exclude group: 'com.google.android.gms'
     exclude group: 'com.google.android.gms.location'
-    exlucde group: 'com.google.android.gms.tasks'
+    exclude group: 'com.google.android.gms.tasks'
 }
