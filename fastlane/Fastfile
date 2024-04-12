@@ -1,0 +1,153 @@
+# This file contains the fastlane.tools configuration
+# You can find the documentation at https://docs.fastlane.tools
+#
+# For a list of all available actions, check out
+#
+#     https://docs.fastlane.tools/actions
+#
+# For a list of all available plugins, check out
+#
+#     https://docs.fastlane.tools/plugins/available-plugins
+#
+
+# Uncomment the line if you want fastlane to automatically update itself
+# update_fastlane
+
+default_platform(:android)
+
+platform :android do
+  desc "Runs all the tests"
+  lane :test do
+    gradle(task: "test")
+  end
+
+  lane :bump_major do
+    flutter_version_manager(
+      arguments: "-major",
+      yml: "version.yml",
+      pubspec: "pubspec.yaml")
+  end
+  lane :bump_minor do
+     flutter_version_manager(
+      arguments: "-minor",
+      yml: "version.yml",
+      pubspec: "pubspec.yaml")
+    end
+
+  lane :bump_patch do
+    flutter_version_manager(
+      arguments: "-patch",
+      yml: "version.yml",
+      pubspec: "pubspec.yaml")
+  end
+
+  lane :read_version do
+    flutter_version_manager(
+      arguments: "-version",
+      yml: "version.yml",
+      pubspec: "pubspec.yaml")
+  end
+
+  lane :read_code do
+    flutter_version_manager(
+      arguments: "-code",
+      yml: "version.yml",
+      pubspec: "pubspec.yaml")
+  end
+
+  lane :apply_new_version do
+    flutter_version_manager(
+      arguments: "-apply",
+      yml: "version.yml",
+      pubspec: "pubspec.yaml")
+  end
+
+
+  desc "Submit a new Beta Build to Beta"
+  lane :beta do
+#     gradle(task: "clean assembleRelease")
+    apply_new_version
+    version_code = read_code
+    upload_to_play_store(
+    track: 'beta',
+    skip_upload_changelogs: true,
+    aab: "build/app/outputs/bundle/release/app-release.aab"
+    )
+  end
+
+  desc "Deploy a new version to the Google Play"
+  lane :deploy do
+#     gradle(task: "clean assembleRelease")
+    upload_to_play_store
+  end
+# Tagging a commit
+  lane :tag_commit do
+      add_git_tag(
+        tag: "v" + flutter_version(pubspec_location: './pubspec.yaml')["version_name"]
+      )
+    end
+end
+
+platform :ios do
+  lane :read_version do
+    flutter_version_manager(
+      arguments: "-version",
+      yml: "version.yml",
+      pubspec: "pubspec.yaml")
+  end
+
+  lane :read_code do
+    flutter_version_manager(
+      arguments: "-code",
+      yml: "version.yml",
+      pubspec: "pubspec.yaml")
+  end
+
+  desc "Submit a new Beta Build to Beta"
+  lane :beta do
+    version_code = read_code
+    api_key = app_store_connect_api_key(
+        key_id: "78H6SWFQ92",
+        issuer_id: "d96d3565-facb-4c1f-9cf0-41828a2f5511",
+        key_filepath: "./fastlane/api-key.p8",
+        duration: 1200, # optional (maximum 1200)
+        in_house: false # optional but may be required if using match/sigh
+    )
+    deliver(
+      metadata_path: "./fastlane/metadata",
+      submission_information: {
+        add_id_info_serves_ads: false,
+        add_id_info_tracks_action: false,
+        add_id_info_tracks_install: false,
+        add_id_info_uses_idfa: false,
+        content_rights_has_rights: true,
+        content_rights_contains_third_party_content: true,
+        export_compliance_platform: 'ios',
+        export_compliance_compliance_required: false,
+        export_compliance_encryption_updated: false,
+        export_compliance_app_type: nil,
+        export_compliance_uses_encryption: false,
+        export_compliance_is_exempt: false,
+        export_compliance_contains_third_party_cryptography: false,
+        export_compliance_contains_proprietary_cryptography: false,
+        export_compliance_available_on_french_store: false
+      },
+      api_key: api_key,
+      precheck_include_in_app_purchases: false,
+      automatic_release: true,
+      submit_for_review: true,
+      force: true, # Skip HTMl report verification
+      ipa: "build-output/ios/Fluffyboard.ipa"
+    )
+  end
+
+  desc "Upload to BrowserStack Applive"
+  lane :browserstack do
+    upload_to_browserstack_app_live(
+      browserstack_username: ENV["BROWSERSTACK_USERNAME"],
+      browserstack_access_key: ENV["BROWSERSTACK_ACCESS_KEY"],
+      file_path: "build-output/ios/Fluffyboard.ipa"
+    )
+  end
+
+end
