@@ -1,0 +1,10 @@
+Die Kifferkarte zeigt die Verbotszonen für den Konsum von Cannabis an.
+Hierbei orientiert sie sich an deiner Aktuellen Position und gibt haptisches Feedback.
+
+Features:
+* Vibrieren und Benachrichtigung wenn Zonenänderung
+* Automatisches freischalten von Fußgängerzonen, wenn außerhalb des Zeitfensters
+* Zeigt Umrisse von Gebäuden an, sodass man besser nach Eingängen suchen kann
+* Zeigt die 100 Meter Umkreis an
+* Farblich unterschiedliche Pois je nach Typ
+* Zusammenfassung der Gesetzeslagen
