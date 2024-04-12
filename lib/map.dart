@@ -330,6 +330,16 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
                       onTap: () => launchUrl(
                           Uri.parse('https://openstreetmap.org/copyright')),
                     ),
+                    TextSourceAttribution(
+                      'Nomatim',
+                      onTap: () => launchUrl(Uri.parse(
+                          'https://operations.osmfoundation.org/policies/nominatim/')),
+                    ),
+                    TextSourceAttribution(
+                      'Overpass',
+                      onTap: () =>
+                          launchUrl(Uri.parse('https://overpass-api.de/')),
+                    ),
                   ],
                 ),
               ),
