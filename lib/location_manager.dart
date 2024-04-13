@@ -38,14 +38,14 @@ class LocationManager {
 
   Future<bool> checkPermissions() async {
     // // Test if location services are enabled.
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      // Location services are not enabled don't continue
-      // accessing the position and request users of the
-      // App to enable the location services.
-      print('Location services are disabled.');
-      Geolocator.openLocationSettings();
-    }
+    // serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    // if (!serviceEnabled) {
+    //   // Location services are not enabled don't continue
+    //   // accessing the position and request users of the
+    //   // App to enable the location services.
+    //   print('Location services are disabled.');
+    //   Geolocator.openLocationSettings();
+    // }
 
     permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
@@ -83,8 +83,6 @@ class LocationManager {
       print("Check permission faileds");
       return false;
     }
-    print(
-        "Service Status ${await _geolocatorPlatform.isLocationServiceEnabled()}");
     var stream = _geolocatorPlatform.getPositionStream(
         locationSettings: LocationSettings(distanceFilter: 3));
     _positionStreamSubscription = stream.listen((event) {
