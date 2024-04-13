@@ -24,7 +24,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:polybool/polybool.dart' as polybool;
 import 'package:vibration/vibration.dart';
-import 'package:flutter_map_heatmap/flutter_map_heatmap.dart';
+import 'package:flutter_map_supercluster/flutter_map_supercluster.dart';
 
 const double radius = 100.0;
 
@@ -56,7 +56,6 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
   bool hasVibrator = false;
   var platformNotification;
   bool mapReady = false;
-  List<WeightedLatLng> weightedLatLng = [];
 
   @override
   void initState() {
@@ -193,9 +192,16 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
                 ),
               ))
           .toList();
-      weightedLatLng = marker
-          .map((e) =>
-              WeightedLatLng(LatLng(e.point.latitude, e.point.longitude), 1))
+      circles = elements
+          .where((element) =>
+              element.poiElement.lat != null && element.poiElement.lon != null)
+          .map((e) => CircleMarker(
+                radius: 3,
+                // Experimentation
+                // anchorPos: AnchorPos.exactly(Anchor(40, 30)),
+                point: LatLng(e.poiElement.lat!, e.poiElement.lon!),
+                color: getPoiColor(e),
+              ))
           .toList();
     });
   }
@@ -310,11 +316,6 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
                       // tries to revalidate the next time it gets requested
                       maxStale: const Duration(days: 30),
                       store: _cacheStore)),
-              if (weightedLatLng.isNotEmpty)
-                HeatMapLayer(
-                    heatMapDataSource:
-                        InMemoryHeatMapDataSource(data: weightedLatLng),
-                    heatMapOptions: HeatMapOptions()),
               CurrentLocationLayer(
                 alignPositionOnUpdate:
                     followPosition ? AlignOnUpdate.always : AlignOnUpdate.never,
@@ -324,9 +325,6 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
               PolygonLayer(
                 polygons: polys,
                 polygonCulling: true,
-              ),
-              MarkerLayer(
-                markers: marker,
               ),
               CircleLayer(circles: circles),
               Padding(
