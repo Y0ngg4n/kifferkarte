@@ -56,10 +56,10 @@ jobs:
             Check git history
           draft: false
           prerelease: true
-          bundle exec fastlane beta
       - name: Deployment with Fastlane
         env:
           RUBYOPT: "-rostruct"
         run: |
           bundle install
           bundle exec fastlane update_plugins
+          bundle exec fastlane beta
