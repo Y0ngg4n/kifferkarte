@@ -44,11 +44,16 @@ jobs:
       - run: flutter pub get
       - run: flutter build appbundle
       - run: flutter build apk
+      - uses: olegtarasov/get-tag@v2.1.3
+        id: tagName
+        with:
+          tagRegex: "(\d+\.\d+\.\d+.*)" # Optional. Returns specified group text as tag name. Full tag string is returned if regex is not defined.
+          tagRegexGroup: 1 # Optional. Default is 1.
       - name: Create Release
         id: create_release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref_name }}
+          tag_name: ${{ steps.tagName.outputs.tag }}
           body: |
             Check git history
           draft: false
