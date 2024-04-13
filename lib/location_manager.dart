@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -83,8 +84,18 @@ class LocationManager {
       print("Check permission faileds");
       return false;
     }
+    LocationSettings locationSettings = LocationSettings(distanceFilter: 3);
+    LocationSettings updateLocationSettings =
+        LocationSettings(distanceFilter: 10);
+    if (Platform.isAndroid) {
+      print("Its android");
+      locationSettings =
+          AndroidSettings(forceLocationManager: true, distanceFilter: 10);
+      updateLocationSettings =
+          AndroidSettings(forceLocationManager: true, distanceFilter: 20);
+    }
     var stream = _geolocatorPlatform.getPositionStream(
-        locationSettings: LocationSettings(distanceFilter: 3));
+        locationSettings: locationSettings);
     _positionStreamSubscription = stream.listen((event) {
       print("position via stream");
       checkPositionInCircle(ref, event);
@@ -93,7 +104,7 @@ class LocationManager {
     });
 
     var updateStream = _geolocatorPlatform.getPositionStream(
-        locationSettings: LocationSettings(distanceFilter: 10));
+        locationSettings: updateLocationSettings);
 
     _updatePositionStreamSubscription = updateStream.listen((event) {
       callUpdate();

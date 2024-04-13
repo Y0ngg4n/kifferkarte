@@ -19,7 +19,7 @@ Future<void> main() async {
       FlutterLocalNotificationsPlugin();
 // initialise the plugin. app_icon needs to be a added as a drawable resource to the Android head project
   const AndroidInitializationSettings initializationSettingsAndroid =
-      AndroidInitializationSettings('app_icon');
+      AndroidInitializationSettings('ic_launcher');
   // final DarwinInitializationSettings initializationSettingsDarwin =
   //     DarwinInitializationSettings(
   //         onDidReceiveLocalNotification: onDidReceiveLocalNotification);
@@ -114,6 +114,41 @@ class KifferkarteWidget extends ConsumerStatefulWidget {
 }
 
 class _KifferkarteWidgetState extends ConsumerState<KifferkarteWidget> {
+  bool lastSmokeable = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      showSmokingNotification(lastSmokeable);
+    });
+  }
+
+  void showSmokingNotification(bool smokeable) {
+    AndroidNotificationDetails androidNotificationDetails =
+        AndroidNotificationDetails(
+      taskChannel,
+      taskChannel,
+      icon: smokeable ? 'ic_stat_smoking_rooms' : 'ic_stat_smoke_free',
+      channelDescription: "Kifferkarte Zone Notification",
+      actions: [],
+    );
+    NotificationDetails notificationDetails =
+        NotificationDetails(android: androidNotificationDetails);
+    widget.flutterLocalNotificationsPlugin.cancel(1);
+    if (smokeable) {
+      widget.flutterLocalNotificationsPlugin.show(
+          1,
+          "Du kannst vermutlich hier kiffen",
+          "Du befindest dich gerade in keiner Zone",
+          notificationDetails);
+    } else {
+      widget.flutterLocalNotificationsPlugin.show(1, "Kiffen verboten",
+          "Du solltest hier nicht kiffen", notificationDetails);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -129,28 +164,16 @@ class _KifferkarteWidgetState extends ConsumerState<KifferkarteWidget> {
     bool updating = ref.watch(updatingProvider);
     bool smokeable = false;
     DateTime now = DateTime.now();
-    const AndroidNotificationDetails androidNotificationDetails =
-        AndroidNotificationDetails(
-      taskChannel,
-      taskChannel,
-      channelDescription: "Kifferkarte Zone Notification",
-      actions: [],
-    );
-    const NotificationDetails notificationDetails =
-        NotificationDetails(android: androidNotificationDetails);
     if ((!inCircle && !inWay) ||
         (!inCircle && (now.hour < 7 || now.hour >= 20))) {
       smokeable = true;
       widget.flutterLocalNotificationsPlugin.cancel(1);
-      widget.flutterLocalNotificationsPlugin.show(
-          1,
-          "Du kannst vermutlich hier kiffen",
-          "Du befindest dich gerade in keiner Zone",
-          notificationDetails);
-    } else {
-      widget.flutterLocalNotificationsPlugin.cancel(1);
-      widget.flutterLocalNotificationsPlugin.show(1, "Kiffen verboten",
-          "Du solltest hier nicht kiffen", notificationDetails);
+    }
+    if (smokeable != lastSmokeable) {
+      showSmokingNotification(smokeable);
+      setState(() {
+        lastSmokeable = smokeable;
+      });
     }
     return Scaffold(
       appBar: AppBar(

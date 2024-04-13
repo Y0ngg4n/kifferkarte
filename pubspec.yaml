@@ -59,6 +59,8 @@ dependencies:
   web: 0.4.2
   flutter_local_notifications: ^17.0.0
   slide_to_act: ^2.0.2
+  flutter_map_supercluster: ^5.0.0-dev.1
+  flutter_map_heatmap: ^0.0.7
 
 dev_dependencies:
   flutter_test:
