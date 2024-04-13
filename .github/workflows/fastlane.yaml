@@ -47,7 +47,7 @@ jobs:
       - uses: olegtarasov/get-tag@v2.1.3
         id: tagName
         with:
-          tagRegex: "(\d+\.\d+\.\d+.*)" # Optional. Returns specified group text as tag name. Full tag string is returned if regex is not defined.
+          tagRegex: '(\d+\.\d+\.\d+.*)' # Optional. Returns specified group text as tag name. Full tag string is returned if regex is not defined.
           tagRegexGroup: 1 # Optional. Default is 1.
       - name: Create Release
         id: create_release
