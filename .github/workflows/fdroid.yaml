@@ -29,6 +29,7 @@ jobs:
           cat metadata/pro.obco.kifferkarte.yml
           head -n -2 metadata/pro.obco.kifferkarte.yml > metadata/pro.obco.kifferkarte.yml.tmp
           mv metadata/pro.obco.kifferkarte.yml.tmp metadata/pro.obco.kifferkarte.yml
+          if grep -wq "versionName: ${{ env.version_number }}" build.txt; then exit 0;elif grep -wq "versionCode: ${{ env.version_code }}" build.txt; then exit 0;fi
           sed -i -e '$a\' metadata/pro.obco.kifferkarte.yml
           echo "  - versionName: ${{ env.version_number }}" >> metadata/pro.obco.kifferkarte.yml
           echo "    versionCode: ${{ env.version_code }}" >> metadata/pro.obco.kifferkarte.yml
