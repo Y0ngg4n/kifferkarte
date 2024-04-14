@@ -3,11 +3,11 @@ on:
   push:
     branches:
       - master
-     - 'refs/tags/*'
+      - "refs/tags/*"
   pull_request:
     branches:
       - master
-     - 'refs/tags/*'
+      - "refs/tags/*"
 jobs:
   push-to-dockerhub:
     runs-on: ubuntu-latest
