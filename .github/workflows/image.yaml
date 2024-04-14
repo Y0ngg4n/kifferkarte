@@ -14,7 +14,13 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Check if main branch
-        run: echo "On the main branch"
+        run: |
+          if [[ "${GITHUB_REF}" == "refs/heads/main" ]]; then
+            echo "On the main branch"
+          else
+            echo "Not on the main branch"
+            exit 0 # Exit with success to skip this step on other branches
+          fi
       - name: Check if tag with semantic versioning exists
         run: |
           TAG=$(echo "${GITHUB_REF##*/}")
