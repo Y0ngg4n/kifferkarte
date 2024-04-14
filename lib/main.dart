@@ -186,7 +186,10 @@ class _KifferkarteWidgetState extends ConsumerState<KifferkarteWidget> {
         title: Text(widget.title),
         actions: [
           updating
-              ? CircularProgressIndicator()
+              ? Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: CircularProgressIndicator(),
+                )
               : smokeable
                   ? Text("Kiffen vermutlich erlaubt")
                   : Text(

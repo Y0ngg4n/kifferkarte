@@ -28,39 +28,39 @@ class _LockscreenState extends ConsumerState<Lockscreen> {
     }
     text = smokeable ? "Kiffen vermutlich erlaubt" : "Kiffen nicht erlaubt";
     return Scaffold(
-      body: Expanded(
-        child: Container(
-          color: Colors.black,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Center(
-                  child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Text(
-                  text,
-                  style: TextStyle(fontSize: 50, color: Colors.white),
-                ),
-              )),
-              Center(
-                  child: Icon(
-                smokeable ? Icons.smoking_rooms : Icons.smoke_free,
-                color: Colors.white,
-                size: 200,
-              )),
-              Center(
+      body: Container(
+        color: Colors.black,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Center(
                 child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: SlideAction(
-                    text: "Schlittern um zu entschlüsseln",
-                    onSubmit: () {
-                      Navigator.of(context).pop();
-                    },
+              padding: const EdgeInsets.fromLTRB(16.0, 52, 16, 16),
+              child: Text(text,
+                  style: TextStyle(
+                    fontSize: 50,
+                    color: smokeable ? Colors.green : Colors.red,
                   ),
+                  textAlign: TextAlign.center),
+            )),
+            Center(
+                child: Icon(
+              smokeable ? Icons.smoking_rooms : Icons.smoke_free,
+              color: smokeable ? Colors.green : Colors.red,
+              size: 250,
+            )),
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 52),
+                child: SlideAction(
+                  text: "Schlittern um zu entschlüsseln",
+                  onSubmit: () {
+                    Navigator.of(context).pop();
+                  },
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

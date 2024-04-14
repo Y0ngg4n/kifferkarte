@@ -507,10 +507,11 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
               },
             )),
         if (updating)
-          Container(
-            color: Colors.white.withOpacity(0.25),
-            child: Center(
-              child: CircularProgressIndicator(),
+          IgnorePointer(
+            child: Container(
+              child: Center(
+                child: CircularProgressIndicator(),
+              ),
             ),
           )
       ],
