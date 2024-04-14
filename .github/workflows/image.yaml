@@ -22,13 +22,15 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
-        uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
-        with:
-          images: ghcr.io/Y0ngg4n/kifferkarte
-          tags: |
-            type=pep440,pattern={{version}}
+      - run: |
+          version_number=$(cat version.yml | sed 's/\(---\|major: \|minor: \|patch: \|\)//g' | sed -z 's/\n/./g;s/,$/\n/' | sed 's/^\.//g' | sed 's/\.$//g' )
+          echo "${version_number}"
+          echo "version_number=${version_number}" >> $GITHUB_ENV
+          echo "${{ env.version_number }}"
+      - run: |
+          version_code=$(cat pubspec.yaml | grep "version:" | sed 's/version:.*+//g')
+          echo "version_code=${version_code}" >> $GITHUB_ENV
+          echo "${{ env.version_code }}"
       - name: Build and push
         id: docker_build
         uses: docker/build-push-action@v2
@@ -36,7 +38,7 @@ jobs:
           context: ./
           file: ./Dockerfile.web
           push: true
-          tags: yonggan/kifferkarte:${{ steps.meta.outputs.tags }}
+          tags: yonggan/kifferkarte:${{ env.version_number }}
       - name: Build and push
         id: docker_build_latest
         uses: docker/build-push-action@v2
@@ -50,7 +52,7 @@ jobs:
         with:
           file: ./Dockerfile.web
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: ${{ env.version_number }}
           labels: ${{ steps.meta.outputs.labels }}
       - name: Build and push Docker image
         uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
