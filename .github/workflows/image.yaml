@@ -1,13 +1,32 @@
 name: Push to Dockerhub
 on:
   push:
-    tags: "*"
+    branches:
+      - master
+     - 'refs/tags/*'
   pull_request:
-    tags: "*"
+    branches:
+      - master
+     - 'refs/tags/*'
 jobs:
   push-to-dockerhub:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v2
+      - name: Check if main branch
+        if: github.ref == 'refs/heads/main'
+        run: echo "On the main branch"
+
+      - name: Check if tag with semantic versioning exists
+        if: github.ref == 'refs/tags/*'
+        run: |
+          TAG=$(echo "${GITHUB_REF##*/}")
+          if [[ $TAG =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Tag $TAG is a semantic version"
+          else
+            echo "Tag $TAG is not a semantic version"
+            exit 1
+          fi
       - name: Login to DockerHub
         uses: docker/login-action@v1
         with:
@@ -19,7 +38,6 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - uses: actions/checkout@v2
       - name: Extract metadata (tags, labels) for Docker
         id: meta
         uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
