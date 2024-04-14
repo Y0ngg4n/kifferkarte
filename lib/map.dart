@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io' if (dart.library.html) 'dart:html';
 import 'dart:math';
 
 import 'package:dio/dio.dart';
@@ -19,10 +18,12 @@ import 'package:kifferkarte/provider_manager.dart';
 import 'package:kifferkarte/search.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:polybool/polybool.dart' as polybool;
 import 'package:vibration/vibration.dart';
 import 'package:universal_platform/universal_platform.dart';
+import 'package:kifferkarte/cachemanager_stub.dart'
+    if (dart.library.html) 'package:kifferkarte/cachemanager_web.dart'
+    if (dart.library.io) 'package:kifferkarte/cachemanager.dart';
 
 const double radius = 100.0;
 
@@ -42,8 +43,8 @@ class MapWidget extends ConsumerStatefulWidget {
 
 class _MapWidgetState extends ConsumerState<MapWidget> {
   LocationManager locationManager = LocationManager();
-
-  CacheStore _cacheStore = MemCacheStore();
+  CacheManager cacheManager = new CacheManager();
+  CacheStore? _cacheStore;
   final _dio = Dio();
   List<Marker> marker = [];
   List<CircleMarker> circles = [];
@@ -61,17 +62,7 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       locationManager.determinePosition();
       checkVibrator();
-      if (UniversalPlatform.isWeb)
-        setState(() {
-          // _cacheStore = DbCacheStore(
-          //   databasePath: '', // ignored on web
-          //   databaseName: 'DbCacheStore',
-          // );
-          _cacheStore = MemCacheStore();
-        });
-      else {
-        getNormalCache();
-      }
+      getCache();
       FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
           FlutterLocalNotificationsPlugin();
       var android =
@@ -160,17 +151,12 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
     });
   }
 
-  Future<void> getNormalCache() async {
-    if (!UniversalPlatform.isWeb) {
-      Directory path = await getTemporaryDirectory();
-      setState(() {
-        _cacheStore = DbCacheStore(
-          databasePath: path.path,
-          databaseName: 'DbCacheStore',
-        );
-        print("Set cache store");
-      });
-    }
+  Future<void> getCache() async {
+    CacheStore cacheStore = await cacheManager.getCacheStore();
+    setState(() {
+      _cacheStore = cacheStore;
+      print("Set cache store");
+    });
   }
 
   void getPoiMarker(List<Poi> elements) {
@@ -315,7 +301,7 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
                       // maxStale keeps the tile cached for the given Duration and
                       // tries to revalidate the next time it gets requested
                       maxStale: const Duration(days: 30),
-                      store: _cacheStore)),
+                      store: _cacheStore ?? MemCacheStore())),
               CurrentLocationLayer(
                 alignPositionOnUpdate:
                     followPosition ? AlignOnUpdate.always : AlignOnUpdate.never,
