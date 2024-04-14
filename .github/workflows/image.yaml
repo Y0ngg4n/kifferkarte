@@ -38,17 +38,15 @@ jobs:
           context: ./
           file: ./Dockerfile.web
           push: true
-          tags:
-            - yonggan/kifferkarte:${{ env.version_number }}
-            - yonggan/kifferkarte:latest
+          tags: yonggan/kifferkarte:${{ env.version_number }},yonggan/kifferkarte:latest
       - name: Build and push Docker image
         uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
         with:
           file: ./Dockerfile.web
           push: true
-          tags: ${{ env.version_number }}
-          labels:
+          tags:
             - ${{ env.version_number }}
             - latest
+          labels: ${{ env.version_number }},latest
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
