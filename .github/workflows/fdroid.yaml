@@ -1,13 +1,9 @@
 name: Fdroid Releases
 on:
   push:
-    branches:
-      - master
-      - "releases/**"
+    tags: "*"
   pull_request:
-    branches:
-      - master
-      - "releases/**"
+    tags: "*"
 jobs:
   release:
     runs-on: ubuntu-latest

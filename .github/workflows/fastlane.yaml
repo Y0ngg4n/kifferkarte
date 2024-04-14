@@ -1,13 +1,9 @@
 name: Fastlane Releases
 on:
   push:
-    branches:
-      - master
-      - "releases/**"
+    tags: "*"
   pull_request:
-    branches:
-      - master
-      - "releases/**"
+    tags: "*"
 jobs:
   google-play:
     runs-on: ubuntu-latest
