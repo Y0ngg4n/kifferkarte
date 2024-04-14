@@ -14,11 +14,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Check if main branch
-        if: github.ref == 'refs/heads/main'
         run: echo "On the main branch"
-
       - name: Check if tag with semantic versioning exists
-        if: github.ref == 'refs/tags/*'
         run: |
           TAG=$(echo "${GITHUB_REF##*/}")
           if [[ $TAG =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
