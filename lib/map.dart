@@ -43,7 +43,7 @@ class MapWidget extends ConsumerStatefulWidget {
 
 class _MapWidgetState extends ConsumerState<MapWidget> {
   LocationManager locationManager = LocationManager();
-  CacheManager cacheManager = new CacheManager();
+  CacheManager cacheManager = CacheManager();
   CacheStore? _cacheStore;
   final _dio = Dio();
   List<Marker> marker = [];
