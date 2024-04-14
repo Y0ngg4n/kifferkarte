@@ -161,14 +161,16 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
   }
 
   Future<void> getNormalCache() async {
-    Directory path = await getTemporaryDirectory();
-    setState(() {
-      _cacheStore = DbCacheStore(
-        databasePath: path.path,
-        databaseName: 'DbCacheStore',
-      );
-      print("Set cache store");
-    });
+    if (!UniversalPlatform.isWeb) {
+      Directory path = await getTemporaryDirectory();
+      setState(() {
+        _cacheStore = DbCacheStore(
+          databasePath: path.path,
+          databaseName: 'DbCacheStore',
+        );
+        print("Set cache store");
+      });
+    }
   }
 
   void getPoiMarker(List<Poi> elements) {
