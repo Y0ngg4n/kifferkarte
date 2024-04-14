@@ -1,14 +1,34 @@
 name: Fdroid Releases
 on:
   push:
-    tags: "*"
+    branches:
+      - master
+      - "refs/tags/*"
   pull_request:
-    tags: "*"
-jobs:
+    branches:
+      - master
+      - "refs/tags/*"jobs:
   release:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - name: Check if master branch
+        run: |
+          if [[ "${GITHUB_REF}" == "refs/heads/master" ]]; then
+            echo "On the master branch"
+          else
+            echo "Not on the master branch"
+            exit 1
+          fi
+      - name: Check if tag with semantic versioning exists
+        run: |
+          TAG=$(echo "${GITHUB_REF##*/}")
+          if [[ $TAG =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Tag $TAG is a semantic version"
+          else
+            echo "Tag $TAG is not a semantic version"
+            exit 1
+          fi
       - run: |
           version_number=$(cat version.yml | sed 's/\(---\|major: \|minor: \|patch: \|\)//g' | sed -z 's/\n/./g;s/,$/\n/' | sed 's/^\.//g' | sed 's/\.$//g' )
           echo "${version_number}"
