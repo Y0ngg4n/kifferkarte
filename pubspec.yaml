@@ -61,6 +61,7 @@ dependencies:
   slide_to_act: ^2.0.2
   flutter_map_supercluster: ^5.0.0-dev.1
   flutter_map_heatmap: ^0.0.7
+  universal_platform: ^1.0.0+1
 
 dev_dependencies:
   flutter_test:

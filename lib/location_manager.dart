@@ -9,6 +9,7 @@ import 'package:kifferkarte/map.dart';
 import 'package:kifferkarte/overpass.dart';
 import 'package:kifferkarte/provider_manager.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:universal_platform/universal_platform.dart';
 import 'package:vibration/vibration.dart';
 import 'package:point_in_polygon/point_in_polygon.dart' as pip;
 
@@ -77,9 +78,8 @@ class LocationManager {
   }
 
   Future<bool> startPositionCheck(WidgetRef ref, Function callUpdate) async {
-    bool wasNull = _positionStreamSubscription == null;
-    _positionStreamSubscription?.cancel();
-    _updatePositionStreamSubscription?.cancel();
+    bool wasNull = _positionStreamSubscription == null ||
+        _updatePositionStreamSubscription == null;
     if (!(await checkPermissions())) {
       print("Check permission faileds");
       return false;
@@ -87,28 +87,33 @@ class LocationManager {
     LocationSettings locationSettings = LocationSettings(distanceFilter: 3);
     LocationSettings updateLocationSettings =
         LocationSettings(distanceFilter: 10);
-    if (Platform.isAndroid) {
+    if (UniversalPlatform.isAndroid) {
       print("Its android");
       locationSettings =
           AndroidSettings(forceLocationManager: true, distanceFilter: 10);
       updateLocationSettings =
           AndroidSettings(forceLocationManager: true, distanceFilter: 20);
     }
-    var stream = _geolocatorPlatform.getPositionStream(
-        locationSettings: locationSettings);
-    _positionStreamSubscription = stream.listen((event) {
-      print("position via stream");
-      checkPositionInCircle(ref, event);
-      lastPosition = event;
-      ref.read(lastPositionProvider.notifier).set(event);
-    });
+    if (_positionStreamSubscription == null) {
+      print("start new position stream");
+      var stream = _geolocatorPlatform.getPositionStream(
+          locationSettings: locationSettings);
+      _positionStreamSubscription = stream.listen((event) {
+        print("position via stream");
+        checkPositionInCircle(ref, event);
+        lastPosition = event;
+        ref.read(lastPositionProvider.notifier).set(event);
+      });
+    }
+    if (_updatePositionStreamSubscription == null) {
+      print("start new update position stream");
+      var updateStream = _geolocatorPlatform.getPositionStream(
+          locationSettings: updateLocationSettings);
 
-    var updateStream = _geolocatorPlatform.getPositionStream(
-        locationSettings: updateLocationSettings);
-
-    _updatePositionStreamSubscription = updateStream.listen((event) {
-      callUpdate();
-    });
+      _updatePositionStreamSubscription = updateStream.listen((event) {
+        callUpdate();
+      });
+    }
     listeningToPosition = true;
     if (wasNull) callUpdate();
     return true;

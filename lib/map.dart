@@ -25,6 +25,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:polybool/polybool.dart' as polybool;
 import 'package:vibration/vibration.dart';
 import 'package:flutter_map_supercluster/flutter_map_supercluster.dart';
+import 'package:universal_platform/universal_platform.dart';
 
 const double radius = 100.0;
 
@@ -63,7 +64,7 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       locationManager.determinePosition();
       checkVibrator();
-      if (kIsWeb)
+      if (UniversalPlatform.isWeb)
         setState(() {
           // _cacheStore = DbCacheStore(
           //   databasePath: '', // ignored on web
