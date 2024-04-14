@@ -1,14 +1,36 @@
 name: Fastlane Releases
 on:
   push:
-    tags: "*"
+    branches:
+      - master
+      - "refs/tags/*"
   pull_request:
-    tags: "*"
+    branches:
+      - master
+      - "refs/tags/*"
 jobs:
   google-play:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - name: Check if master branch
+        run: |
+          if [[ "${GITHUB_REF}" == "refs/heads/master" ]]; then
+            echo "On the master branch"
+          else
+            echo "Not on the main branch"
+            exit 1
+          fi
+      - name: Check if tag with semantic versioning exists
+        run: |
+          TAG=$(echo "${GITHUB_REF##*/}")
+          if [[ $TAG =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Tag $TAG is a semantic version"
+          else
+            echo "Tag $TAG is not a semantic version"
+            exit 1
+          fi
+
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: "2.7.2"
