@@ -28,7 +28,7 @@ jobs:
         with:
           images: ghcr.io/Y0ngg4n/kifferkarte
           tags: |
-            - type=pep440,pattern={{version}}
+            type=pep440,pattern={{version}}
       - name: Build and push
         id: docker_build
         uses: docker/build-push-action@v2

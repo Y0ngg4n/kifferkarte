@@ -58,7 +58,7 @@ jobs:
         with:
           images: ghcr.io/Y0ngg4n/kifferkarte
           tags: |
-            - type=pep440,pattern={{version}}
+            type=pep440,pattern={{version}}
       - name: Create Release
         id: create_release
         uses: softprops/action-gh-release@v2
