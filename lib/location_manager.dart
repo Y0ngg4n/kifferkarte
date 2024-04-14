@@ -111,6 +111,7 @@ class LocationManager {
           locationSettings: updateLocationSettings);
 
       _updatePositionStreamSubscription = updateStream.listen((event) {
+        print("position via update stream");
         callUpdate();
       });
     }
