@@ -44,9 +44,6 @@ jobs:
         with:
           file: ./Dockerfile.web
           push: true
-          tags:
-            - ${{ env.version_number }}
-            - latest
-          labels: ${{ env.version_number }},latest
+          tags: ${{ env.version_number }},latest
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
