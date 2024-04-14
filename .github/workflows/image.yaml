@@ -52,7 +52,7 @@ jobs:
           push: true
           tags: yonggan/kifferkarte:${{ steps.meta.outputs.tags }}
       - name: Build and push
-        id: docker_build
+        id: docker_build_latest
         uses: docker/build-push-action@v2
         with:
           context: ./
