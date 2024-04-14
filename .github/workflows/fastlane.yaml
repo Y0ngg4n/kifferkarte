@@ -40,16 +40,16 @@ jobs:
       - run: flutter pub get
       - run: flutter build appbundle
       - run: flutter build apk
-      - uses: olegtarasov/get-tag@v2.1.3
-        id: tagName
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
         with:
-          tagRegex: '(\d+\.\d+\.\d+.*)' # Optional. Returns specified group text as tag name. Full tag string is returned if regex is not defined.
-          tagRegexGroup: 1 # Optional. Default is 1.
+          images: ghcr.io/Y0ngg4n/kifferkarte
       - name: Create Release
         id: create_release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.tagName.outputs.tag }}
+          tag_name: ${{ steps.meta.outputs.tags }}
           body: |
             Check git history
           draft: false
