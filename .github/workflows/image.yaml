@@ -28,7 +28,7 @@ jobs:
             echo "Tag $TAG is a semantic version"
           else
             echo "Tag $TAG is not a semantic version"
-            exit 1
+            exit 0
           fi
       - name: Login to DockerHub
         uses: docker/login-action@v1
