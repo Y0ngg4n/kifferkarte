@@ -3,24 +3,14 @@ on:
   push:
     branches:
       - master
-      - "refs/tags/*"
   pull_request:
     branches:
       - master
-      - "refs/tags/*"
 jobs:
   google-play:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Check if master branch
-        run: |
-          if [[ "${GITHUB_REF}" == "refs/heads/master" ]]; then
-            echo "On the master branch"
-          else
-            echo "Not on the master branch"
-            exit 1
-          fi
       - name: Check if tag with semantic versioning exists
         run: |
           TAG=$(echo "${GITHUB_REF##*/}")
