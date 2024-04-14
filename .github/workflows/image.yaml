@@ -44,6 +44,6 @@ jobs:
         with:
           file: ./Dockerfile.web
           push: true
-          tags: ghcr.io/Y0ngg4n/kifferkarte:${{ env.version_number }},ghcr.io/Y0ngg4n/kifferkarte:latest
+          tags: ghcr.io/y0ngg4n/kifferkarte:${{ env.version_number }},ghcr.io/y0ngg4n/kifferkarte:latest
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
