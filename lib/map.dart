@@ -20,7 +20,6 @@ import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:polybool/polybool.dart' as polybool;
 import 'package:vibration/vibration.dart';
-import 'package:universal_platform/universal_platform.dart';
 import 'package:kifferkarte/cachemanager_stub.dart'
     if (dart.library.html) 'package:kifferkarte/cachemanager_web.dart'
     if (dart.library.io) 'package:kifferkarte/cachemanager.dart';
@@ -88,7 +87,7 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
     bool? vib = await Vibration.hasVibrator();
     if (vib == null) return;
     setState(() {
-      this.hasVibrator = vib;
+      hasVibrator = vib;
     });
   }
 
@@ -96,8 +95,8 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
     if (_debounce?.isActive ?? false) _debounce?.cancel();
     _debounce = Timer(const Duration(milliseconds: 2000), () async {
       ref.read(updatingProvider.notifier).set(true);
-      await ref.read(poiProvider.notifier).getPois(ref);
-      await ref.read(wayProvider.notifier).getWays(ref);
+      await ref.read(poiProvider.notifier).getPois(ref, _cacheStore);
+      await ref.read(wayProvider.notifier).getWays(ref, _cacheStore);
       var pois = await ref.read(poiProvider.notifier).getState();
       var ways = await ref.read(wayProvider.notifier).getState();
       getPoiMarker(pois);
@@ -128,14 +127,15 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
 
   void getBuildings() async {
     List<Polygon> polys = List.of(this.polys);
-    await ref.read(buildingProvider.notifier).getBuildingBoundaries(ref);
+    await ref
+        .read(buildingProvider.notifier)
+        .getBuildingBoundaries(ref, _cacheStore);
     List<Poi> pois = ref.read(poiProvider.notifier).getState();
     List<Building> buildings = ref.read(buildingProvider.notifier).getState();
     for (Poi poi in pois) {
       for (Building building in buildings) {
-        bool isSelected = poi != null &&
-            poi.building != null &&
-            poi.building!.id == building.id;
+        bool isSelected =
+            poi.building != null && poi.building!.id == building.id;
         polys.add(Polygon(
             points: building.boundaries,
             isFilled: isSelected,
@@ -275,7 +275,7 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
         print("No position in position check");
       }
     }))) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text(
               "Konnte aktuelle Position nicht finden. Überprüfe dass dein GPS aktiviert ist")));
     }
@@ -354,8 +354,8 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
                   Position? position =
                       await locationManager.determinePosition(ref);
                   if (position == null) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text("Keine Position bekannt")));
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                        content: Text("Keine Position bekannt")));
                     return;
                   } else {
                     mapController.move(
@@ -363,7 +363,7 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
                     await update();
                     await locationManager.checkPositionInCircle(ref, position);
                     new Timer(
-                      Duration(seconds: 1),
+                      const Duration(seconds: 1),
                       () {
                         mapController.move(
                             LatLng(position.latitude, position.longitude), 19);
@@ -371,7 +371,7 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
                     );
                   }
                 },
-                initialCenter: LatLng(51.351, 10.591),
+                initialCenter: const LatLng(51.351, 10.591),
                 initialZoom: 7)),
         if (mapReady && 13 - mapController.camera.zoom.toInt() > 0)
           Positioned(
@@ -384,7 +384,7 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
               child: Text(
                 "Zoome an einen Ort um die Zonen zu sehen\n(noch ${13 - mapController.camera.zoom.toInt()} Stufen)",
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 12),
+                style: const TextStyle(fontSize: 12),
               ),
             ),
           )),
@@ -402,11 +402,11 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
                 });
 
                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                    content: Text("Folgen deiner Position " +
-                        (followPosition ? "aktiviert" : "deaktiviert"))));
+                    content: Text(
+                        "Folgen deiner Position ${followPosition ? "aktiviert" : "deaktiviert"}")));
                 if (position == null) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text("Keine Position bekannt")));
+                      const SnackBar(content: Text("Keine Position bekannt")));
                   return;
                 } else {
                   await update();
@@ -425,8 +425,8 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
               onPressed: () {
                 setState(() {
                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                      content: Text("Rotation der Karte " +
-                          (rotateMap ? "deaktiviert" : "aktiviert"))));
+                      content: Text(
+                          "Rotation der Karte ${rotateMap ? "deaktiviert" : "aktiviert"}")));
                   rotateMap = !rotateMap;
                 });
               },
@@ -436,7 +436,7 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
             left: 10,
             child: FloatingActionButton(
               heroTag: "lock",
-              child: Icon(Icons.lock),
+              child: const Icon(Icons.lock),
               onPressed: () {
                 Navigator.of(context).push(DialogRoute(
                   context: context,
@@ -455,8 +455,8 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
                 child: Icon(vibrate ? (Icons.vibration) : (Icons.smartphone)),
                 onPressed: () async {
                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                      content: Text("Vibration " +
-                          (vibrate ? "deaktiviert" : "aktiviert"))));
+                      content: Text(
+                          "Vibration ${vibrate ? "deaktiviert" : "aktiviert"}")));
                   ref.read(vibrateProvider.notifier).set(!vibrate);
                 },
               )),
@@ -501,10 +501,8 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
             )),
         if (updating)
           IgnorePointer(
-            child: Container(
-              child: Center(
-                child: CircularProgressIndicator(),
-              ),
+            child: const Center(
+              child: CircularProgressIndicator(),
             ),
           )
       ],

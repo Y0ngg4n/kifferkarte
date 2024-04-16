@@ -25,24 +25,20 @@ class LocationManager {
     // When we reach here, permissions are granted and we can
     // continue accessing the position of the device.
     try {
-      Position? currentPosition;
+      Position currentPosition;
       if (UniversalPlatform.isAndroid) {
         currentPosition = await Geolocator.getCurrentPosition(
           forceAndroidLocationManager: true,
-          timeLimit: Duration(seconds: 10),
+          timeLimit: const Duration(seconds: 10),
         );
-        print("Adter currentPosition for android ${currentPosition}");
       } else {
         currentPosition = await Geolocator.getCurrentPosition(
-          timeLimit: Duration(seconds: 10),
+          timeLimit: const Duration(seconds: 10),
         );
       }
-      if (currentPosition != null) {
-        print("Yeah it is not null you moron");
-        checkPositionInCircle(ref, currentPosition);
-        lastPosition = currentPosition;
-        ref.read(lastPositionProvider.notifier).set(currentPosition);
-      }
+      checkPositionInCircle(ref, currentPosition);
+      lastPosition = currentPosition;
+      ref.read(lastPositionProvider.notifier).set(currentPosition);
       return currentPosition;
     } catch (Exception) {
       return lastPosition;
@@ -95,9 +91,10 @@ class LocationManager {
       print("Check permission faileds");
       return false;
     }
-    LocationSettings locationSettings = LocationSettings(distanceFilter: 3);
+    LocationSettings locationSettings =
+        const LocationSettings(distanceFilter: 3);
     LocationSettings updateLocationSettings =
-        LocationSettings(distanceFilter: 10);
+        const LocationSettings(distanceFilter: 10);
     if (UniversalPlatform.isAndroid) {
       print("Its android");
       locationSettings =

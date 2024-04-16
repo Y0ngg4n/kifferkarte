@@ -28,7 +28,7 @@ class _SearchViewState extends ConsumerState<SearchView> {
       searching = true;
     });
     if (_debounce?.isActive ?? false) _debounce?.cancel();
-    _debounce = Timer(const Duration(milliseconds: 1000), () {
+    _debounce = Timer(const Duration(milliseconds: 2000), () {
       // Execute API call here
 
       Future.delayed(
@@ -58,17 +58,24 @@ class _SearchViewState extends ConsumerState<SearchView> {
           children: [
             Padding(
               padding: const EdgeInsets.all(8.0),
-              child: TextFormField(
-                autofocus: true,
-                decoration: new InputDecoration(
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(50))),
-                  prefixIcon: Icon(Icons.search),
-                  hintText: 'Search ...',
-                ),
-                controller: textEditingController,
-                onChanged: (_) => search(),
-                onEditingComplete: search,
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      autofocus: true,
+                      decoration: new InputDecoration(
+                        border: OutlineInputBorder(
+                            borderRadius:
+                                BorderRadius.all(Radius.circular(50))),
+                        hintText: 'Search ...',
+                      ),
+                      onFieldSubmitted: (newValue) => search(),
+                      controller: textEditingController,
+                    ),
+                  ),
+                  IconButton(
+                      onPressed: () => search(), icon: Icon(Icons.search))
+                ],
               ),
             ),
             searching

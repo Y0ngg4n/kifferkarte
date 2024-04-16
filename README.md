@@ -29,6 +29,16 @@ The Kifferkarte may not be correct and should be an overview. However, the box c
 * Farblich unterschiedliche Pois je nach Typ
 * Zusammenfassung der Gesetzeslagen
 
+## Datenschutz
+Die Kifferkarte sammelt keinerlei Daten.
+Es gibt in der gehosteten Version einen Serverlog aber das war es auch.
+
+## Datenherkunft
+Folgende Services werden benutzt:
+[Openstreetmap Tile Server](https://operations.osmfoundation.org/policies/tiles/) 
+[Nomatim Server](https://operations.osmfoundation.org/policies/nominatim/)
+[Overpass API](https://overpass-api.de/)
+
 ## Hosting
 [EN]: To host your own version of the Kifferkarte you can use the docker containers. 
 The container can be found in the [Repository Github Container Registry](https://github.com/Y0ngg4n/kifferkarte/pkgs/container/kifferkarte) and on [Dockerhub](https://hub.docker.com/r/yonggan/kifferkarte)

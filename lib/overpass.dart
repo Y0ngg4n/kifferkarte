@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:dio/dio.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:kifferkarte/nomatim.dart';
 import 'package:latlong2/latlong.dart';
@@ -8,10 +9,20 @@ import 'package:http/http.dart' as http;
 import 'package:point_in_polygon/point_in_polygon.dart';
 import 'package:kifferkarte/poi_manager.dart';
 import 'package:kifferkarte/location_manager.dart';
+import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
 
 String overpassUrl = "https://overpass-api.de/api/interpreter";
 
 class Overpass {
+  static CacheOptions getCacheOptions(CacheStore cacheStore) {
+    return CacheOptions(
+      store: cacheStore,
+      allowPostMethod: true,
+      hitCacheOnErrorExcept: [401, 403],
+      maxStale: const Duration(days: 7),
+    );
+  }
+
   static List<Poi> mapBuildingsToPoi(List<Building> buildings, List<Poi> pois) {
     for (Building building in buildings) {
       List<Point> bounds = building.boundaries
@@ -31,8 +42,40 @@ class Overpass {
     return pois;
   }
 
+  static Future<OverpassResponse?> cachedPostRequest(
+      CacheStore? cacheStore, body) async {
+    if (cacheStore != null) {
+      final dio = Dio()
+        ..interceptors
+            .add(DioCacheInterceptor(options: getCacheOptions(cacheStore)));
+      var response = await dio.post(overpassUrl,
+          options: Options(headers: {"charset": "utf-8"}), data: body);
+      if (response.statusCode == 200) {
+        try {
+          OverpassResponse overpassResponse =
+              OverpassResponse.fromJson(response.data);
+          return overpassResponse;
+        } catch (e) {
+          print(e);
+        }
+        return null;
+      } else {
+        return null;
+      }
+    } else {
+      http.Response response = await http.post(Uri.parse(overpassUrl),
+          headers: {"charset": "utf-8"}, body: body);
+      if (response.statusCode == 200) {
+        return OverpassResponse.fromJson(
+            jsonDecode(utf8.decode(response.bodyBytes)));
+      } else {
+        return null;
+      }
+    }
+  }
+
   static Future<OverpassResponse?> getAllPoiInRadius(
-      int radius, LatLng position) async {
+      int radius, LatLng position, CacheStore? cacheStore) async {
     String body = "[out:json][timeout:20][maxsize:536870912];";
     body += "node(around:$radius,${position.latitude}, ${position.longitude});";
     body += "out;";
@@ -47,7 +90,7 @@ class Overpass {
   }
 
   static Future<OverpassResponse?> getKifferPoiInBounds(
-      LatLngBounds? latLngBounds) async {
+      LatLngBounds? latLngBounds, CacheStore? cacheStore) async {
     if (latLngBounds == null) return null;
 
     final List<String> tags = [
@@ -90,18 +133,11 @@ class Overpass {
     });
     body += "\);(._;>;);out;";
     print(body);
-    http.Response response = await http.post(Uri.parse(overpassUrl),
-        headers: {"charset": "utf-8"}, body: body);
-    if (response.statusCode == 200) {
-      return OverpassResponse.fromJson(
-          jsonDecode(utf8.decode(response.bodyBytes)));
-    } else {
-      return null;
-    }
+    return await cachedPostRequest(cacheStore, body);
   }
 
   static Future<OverpassResponse?> getKifferPoiInRadius(
-      LatLng position, int radius) async {
+      LatLng position, int radius, CacheStore? cacheStore) async {
     final List<String> tags = [
       "[leisure=playground]",
       "[amenity=school]",
@@ -132,68 +168,39 @@ class Overpass {
     });
     body += "\);(._;>;);out;";
     print(body);
-    http.Response response = await http.post(Uri.parse(overpassUrl),
-        headers: {"charset": "utf-8"}, body: body);
-    if (response.statusCode == 200) {
-      return OverpassResponse.fromJson(
-          jsonDecode(utf8.decode(response.bodyBytes)));
-    } else {
-      return null;
-    }
+    return await cachedPostRequest(cacheStore, body);
   }
 
   static Future<OverpassResponse?> getPedestrianWaysBoundariesInBounds(
-      LatLngBounds? latLngBounds) async {
+      LatLngBounds? latLngBounds, CacheStore? cacheStore) async {
     if (latLngBounds == null) return null;
     String body = "[out:json][timeout:20][maxsize:536870912];\n";
     body +=
         "way[highway=pedestrian](${latLngBounds.south}, ${latLngBounds.west},${latLngBounds.north}, ${latLngBounds.east});";
     body += "(._;>;);out body;";
-    http.Response response = await http.post(Uri.parse(overpassUrl),
-        headers: {"charset": "utf-8"}, body: body);
-    if (response.statusCode == 200) {
-      return OverpassResponse.fromJson(
-          jsonDecode(utf8.decode(response.bodyBytes)));
-    } else {
-      print(response.body);
-      return null;
-    }
+    return await cachedPostRequest(cacheStore, body);
   }
 
   static Future<OverpassResponse?> getPedestrianWaysBoundariesInRadius(
-      LatLng? position, int radius) async {
+      LatLng? position, int radius, CacheStore? cacheStore) async {
     if (position == null) return null;
     String body = "[out:json][timeout:20][maxsize:536870912];\n";
     body +=
         "way[highway=pedestrian](around:${radius},${position.latitude},${position.longitude});";
     body += "(._;>;);out body;";
-    http.Response response = await http.post(Uri.parse(overpassUrl),
-        headers: {"charset": "utf-8"}, body: body);
-    if (response.statusCode == 200) {
-      return OverpassResponse.fromJson(
-          jsonDecode(utf8.decode(response.bodyBytes)));
-    } else {
-      print(response.body);
-      return null;
-    }
+    return await cachedPostRequest(cacheStore, body);
   }
 
   static Future<OverpassResponse?> getBuildingBoundariesInBounds(
-      LatLngBounds? latLngBounds, LatLng position) async {
+      LatLngBounds? latLngBounds,
+      LatLng position,
+      CacheStore? cacheStore) async {
     if (latLngBounds == null) return null;
     String body = "[out:json][timeout:20][maxsize:536870912];\n";
     body +=
         "way[\"building\"](${latLngBounds.south}, ${latLngBounds.west},${latLngBounds.north}, ${latLngBounds.east});";
     body += "(._;>;);out body;";
-    http.Response response = await http.post(Uri.parse(overpassUrl),
-        headers: {"charset": "utf-8"}, body: body);
-    if (response.statusCode == 200) {
-      return OverpassResponse.fromJson(
-          jsonDecode(utf8.decode(response.bodyBytes)));
-    } else {
-      print(response.body);
-      return null;
-    }
+    return await cachedPostRequest(cacheStore, body);
   }
 }
 

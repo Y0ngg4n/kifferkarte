@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:kifferkarte/location_manager.dart';
 import 'package:kifferkarte/map.dart';
 import 'package:kifferkarte/overpass.dart';
 import 'package:kifferkarte/poi_manager.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
 
 MapController mapController = MapController();
 
@@ -17,7 +17,7 @@ class PoiNotifier extends StateNotifier<List<Poi>> {
     state = [];
   }
 
-  Future<void> getPois(WidgetRef ref) async {
+  Future<void> getPois(WidgetRef ref, CacheStore? cacheStore) async {
     OverpassResponse? overpassResponse;
     try {
       if (mapController.camera.zoom < 13) {
@@ -25,14 +25,15 @@ class PoiNotifier extends StateNotifier<List<Poi>> {
         if (position != null) {
           overpassResponse = await Overpass.getKifferPoiInRadius(
               LatLng(position.latitude, position.longitude),
-              radius.toInt() * 3);
+              radius.toInt() * 3,
+              cacheStore);
         } else {
           overpassResponse = await Overpass.getKifferPoiInRadius(
-              mapController.camera.center, radius.toInt() * 3);
+              mapController.camera.center, radius.toInt() * 3, cacheStore);
         }
       } else {
         overpassResponse = await Overpass.getKifferPoiInBounds(
-            mapController.camera.visibleBounds);
+            mapController.camera.visibleBounds, cacheStore);
       }
       if (overpassResponse != null) {
         List<Poi> pois = [];
@@ -66,7 +67,7 @@ class WayNotifier extends StateNotifier<List<Way>> {
     state = [];
   }
 
-  Future<void> getWays(WidgetRef ref) async {
+  Future<void> getWays(WidgetRef ref, CacheStore? cacheStore) async {
     OverpassResponse? overpassResponse;
     try {
       if (mapController.camera.zoom < 13) {
@@ -74,14 +75,15 @@ class WayNotifier extends StateNotifier<List<Way>> {
         if (position != null) {
           overpassResponse = await Overpass.getPedestrianWaysBoundariesInRadius(
               LatLng(position.latitude, position.longitude),
-              radius.toInt() * 3);
+              radius.toInt() * 3,
+              cacheStore);
         } else {
           overpassResponse = await Overpass.getPedestrianWaysBoundariesInRadius(
-              mapController.camera.center, radius.toInt() * 3);
+              mapController.camera.center, radius.toInt() * 3, cacheStore);
         }
       } else {
         overpassResponse = await Overpass.getPedestrianWaysBoundariesInBounds(
-            mapController.camera.visibleBounds);
+            mapController.camera.visibleBounds, cacheStore);
       }
       if (overpassResponse != null) {
         List<Way> ways = [];
@@ -192,7 +194,8 @@ class BuildingNotifier extends StateNotifier<List<Building>> {
     state = [];
   }
 
-  Future<void> getBuildingBoundaries(WidgetRef ref) async {
+  Future<void> getBuildingBoundaries(
+      WidgetRef ref, CacheStore? cacheStore) async {
     if (mapController.camera.zoom < 13) {
       state = [];
       return;
@@ -202,7 +205,8 @@ class BuildingNotifier extends StateNotifier<List<Building>> {
     OverpassResponse? overpassResponse =
         await Overpass.getBuildingBoundariesInBounds(
             mapController.camera.visibleBounds,
-            LatLng(position.latitude, position.longitude));
+            LatLng(position.latitude, position.longitude),
+            cacheStore);
     if (overpassResponse != null) {
       List<Building> buildings = [];
       for (PoiElement building in overpassResponse.elements

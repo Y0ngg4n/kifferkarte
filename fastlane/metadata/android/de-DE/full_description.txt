@@ -1,5 +1,6 @@
-Die Kifferkarte zeigt die Verbotszonen für den Konsum von Cannabis an.
-Hierbei orientiert sie sich an deiner Aktuellen Position und gibt haptisches Feedback.
+Die Kifferkarte bietet ähnlich zur Bubatzkarte einen Überblick über die Konsumzonen, bietet jedoch eine zusätzliche unterstützung für Positionen und vibriert wahlweiße und benachrichtigt beim verlassen und eintreten von Zonen. Die Kifferkarte beinhaltet auch die Fußgängerzonen und verhält sich der Uhrzeit entsprechend.
+
+Die Kifferkarte ist eventuell nicht korrekt und soll eine Übersicht darstellen. Die Kifferkarte übernimmt jedoch keine Verantwortung für dein Handeln. Du musst immer noch selbst prüfen.
 
 Features:
 * Vibrieren und Benachrichtigung wenn Zonenänderung
@@ -8,3 +9,5 @@ Features:
 * Zeigt die 100 Meter Umkreis an
 * Farblich unterschiedliche Pois je nach Typ
 * Zusammenfassung der Gesetzeslagen
+
+Die Kifferkarte sammelt keinerlei Daten.
