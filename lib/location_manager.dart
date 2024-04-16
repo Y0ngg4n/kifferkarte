@@ -18,18 +18,32 @@ class LocationManager {
   Position? lastPosition;
   bool serviceEnabled = true;
   LocationPermission permission = LocationPermission.always;
+  Completer<bool> initialCompleter = Completer<bool>();
 
-  Future<Position?> determinePosition() async {
+  Future<Position?> determinePosition(WidgetRef ref) async {
     await checkPermissions();
     // When we reach here, permissions are granted and we can
     // continue accessing the position of the device.
     try {
-      Position currentPosition = await Geolocator.getCurrentPosition(
-        forceAndroidLocationManager: true,
-        timeLimit: Duration(seconds: 5),
-      );
-      lastPosition = currentPosition;
-      return lastPosition;
+      Position? currentPosition;
+      if (UniversalPlatform.isAndroid) {
+        currentPosition = await Geolocator.getCurrentPosition(
+          forceAndroidLocationManager: true,
+          timeLimit: Duration(seconds: 10),
+        );
+        print("Adter currentPosition for android ${currentPosition}");
+      } else {
+        currentPosition = await Geolocator.getCurrentPosition(
+          timeLimit: Duration(seconds: 10),
+        );
+      }
+      if (currentPosition != null) {
+        print("Yeah it is not null you moron");
+        checkPositionInCircle(ref, currentPosition);
+        lastPosition = currentPosition;
+        ref.read(lastPositionProvider.notifier).set(currentPosition);
+      }
+      return currentPosition;
     } catch (Exception) {
       return lastPosition;
     }
@@ -109,11 +123,17 @@ class LocationManager {
 
       _updatePositionStreamSubscription = updateStream.listen((event) {
         print("position via update stream");
+        checkPositionInCircle(ref, event);
+        lastPosition = event;
+        ref.read(lastPositionProvider.notifier).set(event);
         callUpdate();
       });
     }
     listeningToPosition = true;
-    if (wasNull) callUpdate();
+    if (wasNull) {
+      print("CallingUpdate");
+      callUpdate();
+    }
     return true;
   }
 

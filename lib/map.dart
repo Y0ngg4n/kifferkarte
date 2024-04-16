@@ -60,7 +60,6 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      locationManager.determinePosition();
       checkVibrator();
       getCache();
       FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
@@ -267,11 +266,13 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
 
   Future<void> startPositionCheck() async {
     if (!(await locationManager.startPositionCheck(ref, () async {
-      print("startPositionCheck");
+      print("startPositionCheck after call update");
       await update();
       Position? position = ref.read(lastPositionProvider.notifier).getState();
       if (position != null) {
         locationManager.checkPositionInCircle(ref, position);
+      } else {
+        print("No position in position check");
       }
     }))) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -350,19 +351,25 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
                   setState(() {
                     mapReady = true;
                   });
-                  Timer.new(
-                    Duration(seconds: 10),
-                    () async {
-                      await update();
-                      Position? position =
-                          ref.read(lastPositionProvider.notifier).getState();
-                      if (position != null) {
+                  Position? position =
+                      await locationManager.determinePosition(ref);
+                  if (position == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text("Keine Position bekannt")));
+                    return;
+                  } else {
+                    mapController.move(
+                        LatLng(position.latitude, position.longitude), 19);
+                    await update();
+                    await locationManager.checkPositionInCircle(ref, position);
+                    new Timer(
+                      Duration(seconds: 1),
+                      () {
                         mapController.move(
                             LatLng(position.latitude, position.longitude), 19);
-                        locationManager.checkPositionInCircle(ref, position);
-                      }
-                    },
-                  );
+                      },
+                    );
+                  }
                 },
                 initialCenter: LatLng(51.351, 10.591),
                 initialZoom: 7)),
@@ -402,10 +409,10 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
                       SnackBar(content: Text("Keine Position bekannt")));
                   return;
                 } else {
-                  update();
+                  await update();
                   await locationManager.checkPositionInCircle(ref, position);
                   mapController.move(
-                      LatLng(position!.latitude, position!.longitude), 19);
+                      LatLng(position.latitude, position.longitude), 19);
                 }
               },
             )),
