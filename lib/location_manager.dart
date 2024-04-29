@@ -92,9 +92,9 @@ class LocationManager {
       return false;
     }
     LocationSettings locationSettings =
-        const LocationSettings(distanceFilter: 3);
-    LocationSettings updateLocationSettings =
         const LocationSettings(distanceFilter: 10);
+    LocationSettings updateLocationSettings =
+        const LocationSettings(distanceFilter: 20);
     if (UniversalPlatform.isAndroid) {
       print("Its android");
       locationSettings =
