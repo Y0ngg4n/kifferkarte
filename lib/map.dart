@@ -23,6 +23,8 @@ import 'package:kifferkarte/cachemanager_stub.dart'
     if (dart.library.html) 'package:kifferkarte/cachemanager_web.dart'
     if (dart.library.io) 'package:kifferkarte/cachemanager.dart';
 
+import 'package:kifferkarte/scalebar.dart';
+
 const double radius = 100.0;
 
 class ClusterResult {
@@ -256,6 +258,15 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
       List<LatLng> points = circleToPolygon(position, radius, 32);
       polys.add(Polygon(
           points: points, isFilled: true, color: Colors.red.withOpacity(0.25)));
+      if (poi.building != null && poi.building!.boundaries.isNotEmpty) {
+        for (LatLng pos in poi.building!.boundaries) {
+          List<LatLng> buildingPoints = circleToPolygon(pos, radius, 32);
+          polys.add(Polygon(
+              points: buildingPoints,
+              isFilled: true,
+              color: Colors.red.withOpacity(0.25)));
+        }
+      }
     }
 
     setState(() {
@@ -307,6 +318,11 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
                     followPosition ? AlignOnUpdate.always : AlignOnUpdate.never,
                 alignDirectionOnUpdate:
                     rotateMap ? AlignOnUpdate.always : AlignOnUpdate.never,
+              ),
+              Scalebar(
+                textStyle: TextStyle(color: Colors.black, fontSize: 14),
+                padding: EdgeInsets.only(right: 10, left: 90, top: 70),
+                alignment: Alignment.topLeft,
               ),
               PolygonLayer(
                 polygons: polys,

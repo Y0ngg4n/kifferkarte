@@ -50,7 +50,7 @@ Verwende die zweite Taste von unden rechts um die Vibration ein und auszuschalte
 Dadurch wirst du sofort über neue Zonenbegegnungen informiert.
 Suche mit der Lupe nach Orten. Drehe die Karte nach deiner Gyroskopausrichtung mit der zweiten Taste links oben
 und gehe zum Lockscreen durch das Schloss, da Android keine richtigen Backgroundlocations zulässt(Bitte PM wenn Idee).
-Die roten Zonen zeigen die 100 Meter an. Die gelben Polygone eine Fußgängerzone zwischen 7 und 20 Uhr und die grünen Polygone Fußgängerzonen außerhalb dieser Zeiten.
+Die roten Zonen zeigen die 100 Meter an, und berücksichtigen auch die Gebäudeumrisse soweit vorhanden. Die gelben Polygone eine Fußgängerzone zwischen 7 und 20 Uhr und die grünen Polygone Fußgängerzonen außerhalb dieser Zeiten.
 Die orangenen Polygone zeigen die Gebäudeumrisse an.
             """,
             textAlign: TextAlign.left,
