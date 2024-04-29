@@ -145,14 +145,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.5.0"
-  dio_cache_interceptor_db_store:
-    dependency: "direct main"
-    description:
-      name: dio_cache_interceptor_db_store
-      sha256: "920d9984b97522dc5bdd78a7d228ab41f3e64df57704490c5a367ca28e682e72"
-      url: "https://pub.dev"
-    source: hosted
-    version: "5.1.1"
   dio_cache_interceptor_hive_store:
     dependency: "direct main"
     description:
@@ -161,14 +153,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.2.2"
-  drift:
-    dependency: "direct main"
-    description:
-      name: drift
-      sha256: b50a8342c6ddf05be53bda1d246404cbad101b64dc73e8d6d1ac1090d119b4e2
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.15.0"
   equatable:
     dependency: transitive
     description:
