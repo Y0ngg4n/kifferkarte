@@ -40,7 +40,7 @@ class LocationManager {
       lastPosition = currentPosition;
       ref.read(lastPositionProvider.notifier).set(currentPosition);
       return currentPosition;
-    } catch (Exception) {
+    } on Exception {
       return lastPosition;
     }
   }

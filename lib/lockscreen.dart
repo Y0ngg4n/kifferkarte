@@ -1,13 +1,10 @@
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:kifferkarte/main.dart';
 import 'package:kifferkarte/provider_manager.dart';
 import 'package:slide_to_act/slide_to_act.dart';
 
 class Lockscreen extends ConsumerStatefulWidget {
-  Lockscreen({super.key});
+  const Lockscreen({super.key});
 
   @override
   ConsumerState<Lockscreen> createState() => _LockscreenState();
@@ -56,6 +53,7 @@ class _LockscreenState extends ConsumerState<Lockscreen> {
                   text: "Schlittern um zu entschlüsseln",
                   onSubmit: () {
                     Navigator.of(context).pop();
+                    return null;
                   },
                 ),
               ),

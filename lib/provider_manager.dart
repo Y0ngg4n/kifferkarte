@@ -46,8 +46,8 @@ class PoiNotifier extends StateNotifier<List<Poi>> {
       } else {
         print("null");
       }
-    } catch (Exception) {
-      ScaffoldMessenger.of(ref.context).showSnackBar(SnackBar(
+    } on Exception {
+      ScaffoldMessenger.of(ref.context).showSnackBar(const SnackBar(
           content: Text(
               "Konnte die Overpass API nicht erreichen. Überprüfe deine Internetverbindung oder versuche es zu einem späteren Zeitpunkt erneut")));
     }
@@ -102,8 +102,8 @@ class WayNotifier extends StateNotifier<List<Way>> {
         }
         state = ways;
       }
-    } catch (Exception) {
-      ScaffoldMessenger.of(ref.context).showSnackBar(SnackBar(
+    } on Exception {
+      ScaffoldMessenger.of(ref.context).showSnackBar(const SnackBar(
           content: Text(
               "Konnte die Overpass API nicht erreichen. Überprüfe deine Internetverbindung oder versuche es zu einem späteren Zeitpunkt erneut")));
     }
