@@ -1,15 +1,13 @@
 import 'dart:convert';
-import 'dart:math';
 
 import 'package:dio/dio.dart';
-import 'package:flutter_map/flutter_map.dart';
-import 'package:kifferkarte/nomatim.dart';
-import 'package:latlong2/latlong.dart';
-import 'package:http/http.dart' as http;
-import 'package:point_in_polygon/point_in_polygon.dart';
-import 'package:kifferkarte/poi_manager.dart';
-import 'package:kifferkarte/location_manager.dart';
 import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:http/http.dart' as http;
+import 'package:kifferkarte/nomatim.dart';
+import 'package:kifferkarte/poi_manager.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:point_in_polygon/point_in_polygon.dart';
 
 String overpassUrl = "https://overpass-api.de/api/interpreter";
 
@@ -114,16 +112,16 @@ class Overpass {
       "[leisure=water_park]",
       "[leisure=golf_course]"
     ];
-    Distance distance = Distance();
+    Distance distance = const Distance();
     print(
-        "${latLngBounds!.south},${latLngBounds.west},${latLngBounds.north},${latLngBounds.east}");
+        "${latLngBounds.south},${latLngBounds.west},${latLngBounds.north},${latLngBounds.east}");
     LatLng northWest = latLngBounds.northWest;
     LatLng southEast = latLngBounds.southEast;
     northWest = distance.offset(northWest, 100, 315);
     southEast = distance.offset(southEast, 100, 135);
     latLngBounds = LatLngBounds(northWest, southEast);
     print(
-        "${latLngBounds!.south},${latLngBounds.west},${latLngBounds.north},${latLngBounds.east}");
+        "${latLngBounds.south},${latLngBounds.west},${latLngBounds.north},${latLngBounds.east}");
     String body = "[out:json][timeout:20][maxsize:536870912];\(";
     // Generate Overpass queries for each tag
     tags.forEach((value) {

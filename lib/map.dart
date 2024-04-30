@@ -19,9 +19,8 @@ import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:polybool/polybool.dart' as polybool;
 import 'package:vibration/vibration.dart';
-import 'package:kifferkarte/cachemanager_stub.dart'
-    if (dart.library.html) 'package:kifferkarte/cachemanager_web.dart'
-    if (dart.library.io) 'package:kifferkarte/cachemanager.dart';
+import 'package:kifferkarte/cachemanager.dart'
+    if (dart.library.html) 'package:kifferkarte/cachemanager_web.dart';
 
 import 'package:kifferkarte/scalebar.dart';
 
@@ -35,8 +34,9 @@ class ClusterResult {
 }
 
 class MapWidget extends ConsumerStatefulWidget {
-  FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
-  MapWidget({super.key, required this.flutterLocalNotificationsPlugin});
+  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
+
+  const MapWidget({super.key, required this.flutterLocalNotificationsPlugin});
   @override
   ConsumerState<MapWidget> createState() => _MapWidgetState();
 }
@@ -301,6 +301,39 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
       children: [
         FlutterMap(
             mapController: mapController,
+            options: MapOptions(
+                maxZoom: 19,
+                minZoom: 0,
+                onPointerUp: (event, point) {
+                  update();
+                },
+                onMapReady: () async {
+                  await startPositionCheck();
+                  setState(() {
+                    mapReady = true;
+                  });
+                  Position? position =
+                      await locationManager.determinePosition(ref);
+                  if (position == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                        content: Text("Keine Position bekannt")));
+                    return;
+                  } else {
+                    mapController.move(
+                        LatLng(position.latitude, position.longitude), 19);
+                    await update();
+                    await locationManager.checkPositionInCircle(ref, position);
+                    Timer(
+                      const Duration(seconds: 1),
+                      () {
+                        mapController.move(
+                            LatLng(position.latitude, position.longitude), 19);
+                      },
+                    );
+                  }
+                },
+                initialCenter: const LatLng(51.351, 10.591),
+                initialZoom: 7),
             children: [
               TileLayer(
                   maxZoom: 19,
@@ -319,7 +352,7 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
                 alignDirectionOnUpdate:
                     rotateMap ? AlignOnUpdate.always : AlignOnUpdate.never,
               ),
-              Scalebar(
+              const Scalebar(
                 textStyle: TextStyle(color: Colors.black, fontSize: 14),
                 padding: EdgeInsets.only(right: 10, left: 90, top: 70),
                 alignment: Alignment.topLeft,
@@ -354,40 +387,7 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
                   ],
                 ),
               ),
-            ],
-            options: MapOptions(
-                maxZoom: 19,
-                minZoom: 0,
-                onPointerUp: (event, point) {
-                  update();
-                },
-                onMapReady: () async {
-                  await startPositionCheck();
-                  setState(() {
-                    mapReady = true;
-                  });
-                  Position? position =
-                      await locationManager.determinePosition(ref);
-                  if (position == null) {
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                        content: Text("Keine Position bekannt")));
-                    return;
-                  } else {
-                    mapController.move(
-                        LatLng(position.latitude, position.longitude), 19);
-                    await update();
-                    await locationManager.checkPositionInCircle(ref, position);
-                    new Timer(
-                      const Duration(seconds: 1),
-                      () {
-                        mapController.move(
-                            LatLng(position.latitude, position.longitude), 19);
-                      },
-                    );
-                  }
-                },
-                initialCenter: const LatLng(51.351, 10.591),
-                initialZoom: 7)),
+            ]),
         if (mapReady && 13 - mapController.camera.zoom.toInt() > 0)
           Positioned(
               child: Container(
@@ -456,7 +456,7 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
                 Navigator.of(context).push(DialogRoute(
                   context: context,
                   builder: (context) {
-                    return Lockscreen();
+                    return const Lockscreen();
                   },
                 ));
               },
@@ -515,8 +515,8 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
               },
             )),
         if (updating)
-          IgnorePointer(
-            child: const Center(
+          const IgnorePointer(
+            child: Center(
               child: CircularProgressIndicator(),
             ),
           )

@@ -24,7 +24,7 @@ Future<void> main() async {
   //         onDidReceiveLocalNotification: onDidReceiveLocalNotification);
   // final LinuxInitializationSettings initializationSettingsLinux =
   //     LinuxInitializationSettings(defaultActionName: 'Open notification');
-  final InitializationSettings initializationSettings = InitializationSettings(
+  const InitializationSettings initializationSettings = InitializationSettings(
     android: initializationSettingsAndroid,
   );
   // iOS: initializationSettingsDarwin,
@@ -44,11 +44,11 @@ Future<void> main() async {
         break;
     }
   });
-  runApp(Kifferkarte());
+  runApp(const Kifferkarte());
 }
 
 class Kifferkarte extends StatelessWidget {
-  Kifferkarte({super.key});
+  const Kifferkarte({super.key});
 
   // This widget is the root of your application.
   @override
@@ -90,9 +90,9 @@ class Kifferkarte extends StatelessWidget {
 }
 
 class KifferkarteWidget extends ConsumerStatefulWidget {
-  FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
+  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
 
-  KifferkarteWidget(
+  const KifferkarteWidget(
       {super.key,
       required this.title,
       required this.flutterLocalNotificationsPlugin});
@@ -185,13 +185,13 @@ class _KifferkarteWidgetState extends ConsumerState<KifferkarteWidget> {
         title: Text(widget.title),
         actions: [
           updating
-              ? Padding(
-                  padding: const EdgeInsets.all(8.0),
+              ? const Padding(
+                  padding: EdgeInsets.all(8.0),
                   child: CircularProgressIndicator(),
                 )
               : smokeable
-                  ? Text("Kiffen vermutlich erlaubt")
-                  : Text(
+                  ? const Text("Kiffen vermutlich erlaubt")
+                  : const Text(
                       "Kiffen nicht erlaubt",
                       style: TextStyle(
                           color: Colors.red, fontWeight: FontWeight.bold),
@@ -204,7 +204,7 @@ class _KifferkarteWidgetState extends ConsumerState<KifferkarteWidget> {
             )
         ],
       ),
-      bottomSheet: SingleChildScrollView(
+      bottomSheet: const SingleChildScrollView(
         child: ExpansionTile(
           title: Text("Gesetzliche Lage und Anwendung"),
           children: [Rules()],

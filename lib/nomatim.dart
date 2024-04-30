@@ -166,7 +166,7 @@ class Nomatim {
       if (nomatimResponse.elements.length > 1) {
         nomatimResponse.elements.sort(
           (a, b) {
-            Distance distance = Distance();
+            Distance distance = const Distance();
             double ma = distance.as(
                 LengthUnit.Meter,
                 LatLng(position.latitude, position.longitude),
@@ -181,7 +181,7 @@ class Nomatim {
           },
         );
       } else {
-        Distance distance = Distance();
+        Distance distance = const Distance();
         SearchElement searchElement = nomatimResponse.elements.first;
         double ma = distance.as(
             LengthUnit.Meter,
@@ -198,7 +198,7 @@ class Nomatim {
 
   static Future<List<NomatimLookupElement>> getNominatimLookupElements(
       List<int> osmIds) async {
-    final String baseUrl = 'https://nominatim.openstreetmap.org/lookup';
+    const String baseUrl = 'https://nominatim.openstreetmap.org/lookup';
 
     List<NomatimLookupElement> elements = [];
 
