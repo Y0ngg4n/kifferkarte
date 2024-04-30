@@ -1,17 +1,17 @@
 import 'dart:async';
 
-import 'package:kifferkarte/location_manager.dart';
-import 'package:kifferkarte/nomatim.dart';
-import 'package:kifferkarte/overpass.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:kifferkarte/location_manager.dart';
+import 'package:kifferkarte/nomatim.dart';
 import 'package:kifferkarte/provider_manager.dart';
 import 'package:latlong2/latlong.dart';
 
 class SearchView extends ConsumerStatefulWidget {
-  LocationManager locationManager;
-  SearchView({Key? key, required this.locationManager}) : super(key: key);
+  final LocationManager locationManager;
+
+  const SearchView({Key? key, required this.locationManager}) : super(key: key);
 
   @override
   ConsumerState<SearchView> createState() => _SearchViewState();
@@ -52,7 +52,7 @@ class _SearchViewState extends ConsumerState<SearchView> {
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
-          title: Text("Search"),
+          title: const Text("Search"),
         ),
         body: Column(
           children: [
@@ -63,7 +63,7 @@ class _SearchViewState extends ConsumerState<SearchView> {
                   Expanded(
                     child: TextFormField(
                       autofocus: true,
-                      decoration: new InputDecoration(
+                      decoration: const InputDecoration(
                         border: OutlineInputBorder(
                             borderRadius:
                                 BorderRadius.all(Radius.circular(50))),
@@ -74,12 +74,12 @@ class _SearchViewState extends ConsumerState<SearchView> {
                     ),
                   ),
                   IconButton(
-                      onPressed: () => search(), icon: Icon(Icons.search))
+                      onPressed: () => search(), icon: const Icon(Icons.search))
                 ],
               ),
             ),
             searching
-                ? CircularProgressIndicator()
+                ? const CircularProgressIndicator()
                 : (nomatimSearch == null || textEditingController.text.isEmpty
                     ? Container()
                     : Expanded(
@@ -91,7 +91,7 @@ class _SearchViewState extends ConsumerState<SearchView> {
                               ListTile(
                                 leading: element.icon != null
                                     ? Image.network(element.icon!)
-                                    : Text(""),
+                                    : const Text(""),
                                 title: Text(element.diplay_name),
                                 subtitle: Text(element.type),
                                 trailing: Text(element.distanceInMeter == null

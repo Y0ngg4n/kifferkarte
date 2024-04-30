@@ -6,6 +6,7 @@ import 'package:kifferkarte/cachemanager_stub.dart';
 import 'package:path_provider/path_provider.dart';
 
 class CacheManager extends BaseCacheManager {
+  @override
   Future<CacheStore> getCacheStore() async {
     Directory path = await getTemporaryDirectory();
     return HiveCacheStore(path.path);

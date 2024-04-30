@@ -11,11 +11,11 @@ class Rules extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
+          const Text(
             "Konsumverbot",
             style: TextStyle(fontSize: 20),
           ),
-          Text(
+          const Text(
             """1) Der Konsum von Cannabis in unmittelbarer Gegenwart von Personen, die das 18. Lebensjahr noch nicht vollendet haben, ist verboten
 2) Der öffentliche Konsum von Cannabis ist verboten:
         1. in Schulen und in deren Sichtweite,
@@ -27,11 +27,11 @@ class Rules extends StatelessWidget {
             """,
             textAlign: TextAlign.left,
           ),
-          Text(
+          const Text(
             "Daten und Korrektheit",
             style: TextStyle(fontSize: 20),
           ),
-          Text(
+          const Text(
             """Die Kifferkarte übernimmt keine Verantwortung für dein Handeln und hat keine Garantie auf Korrektheit.
 Bitte informiere dich vor Ort und wenn du nicht sicher bist, kiffe nicht öffentlich.
 Es werden keine persönlichen Daten gespeichert. Es gibt einen Serverlog aber das ist auch alles. Es werden Daten aus Openstreetmap, Overpass und Nomatim geladen.
@@ -39,11 +39,11 @@ Es werden ausschließlich die Öffentlichen Instanzen benutzt.
             """,
             textAlign: TextAlign.left,
           ),
-          Text(
+          const Text(
             "Anleitung",
             style: TextStyle(fontSize: 20),
           ),
-          Text(
+          const Text(
             """Zoome mit den Fingern oder den Tasten in die Karte bis du Kreise siehst.
 Oder drücke auf das Navigationssymbol rechts unten und du springst direkt zu dir und folgst deiner Position mit der Karte.
 Verwende die zweite Taste von unden rechts um die Vibration ein und auszuschalten.
@@ -55,22 +55,22 @@ Die orangenen Polygone zeigen die Gebäudeumrisse an.
             """,
             textAlign: TextAlign.left,
           ),
-          Text(
+          const Text(
             "Farblegende",
             style: TextStyle(fontSize: 20),
           ),
-          Text(
+          const Text(
             """Schwarz: Spielplatz
 Pink: Kindergarten/Kita..
 Blau: Schule
 Grün: Sportanlage""",
             textAlign: TextAlign.left,
           ),
-          Text(
+          const Text(
             "FAQ",
             style: TextStyle(fontSize: 20),
           ),
-          Text(
+          const Text(
             """Warum muss ich erst reinzomen um die Zonen zu sehen? Die Bubatzkarte kann das doch auch so?
 Die Bubatzkarte benutzt eine andere Technologie. Die Bubatzkarte verwendet vorgerenderte Kartenbereiche und benutzt einen eigens dafür entwickelten Tileserver. Die Kifferkarte benutzt die Overpass API und um diese nicht zu sehr zu belasten, beschränken wir das Zoom Level. Ansonsten würde es mehrere Minuten dauern um alle Punkte zu laden.
 
@@ -84,28 +84,28 @@ Die Kifferkarte verarbeitet die Daten falsch -> kontaktiere mich und ich werde v
             """,
             textAlign: TextAlign.left,
           ),
-          Text("Kontakt/Links", style: TextStyle(fontSize: 20)),
+          const Text("Kontakt/Links", style: TextStyle(fontSize: 20)),
           GestureDetector(
-              child: Text("Matrix: yonggan@matrixapp.chat",
+              child: const Text("Matrix: yonggan@matrixapp.chat",
                   style: TextStyle(
                       decoration: TextDecoration.underline,
                       color: Colors.blue)),
               onTap: () => launchUrlString(
                   "https://matrix.to/#/@yonggan:matrixapp.chat")),
           GestureDetector(
-            child: Text("Email: admin@obco.pro",
+            child: const Text("Email: admin@obco.pro",
                 style: TextStyle(
                     decoration: TextDecoration.underline, color: Colors.blue)),
             onTap: () => launchUrlString("mailto:admin@obco.pro"),
           ),
           GestureDetector(
-            child: Text("Fedi: @yonggan@iceshrimp.de",
+            child: const Text("Fedi: @yonggan@iceshrimp.de",
                 style: TextStyle(
                     decoration: TextDecoration.underline, color: Colors.blue)),
             onTap: () => launchUrlString("https://iceshrimp.de/@Yonggan"),
           ),
           GestureDetector(
-            child: Text("Source code: https://github.com/Y0ngg4n/kifferkarte",
+            child: const Text("Source code: https://github.com/Y0ngg4n/kifferkarte",
                 style: TextStyle(
                     decoration: TextDecoration.underline, color: Colors.blue)),
             onTap: () =>
