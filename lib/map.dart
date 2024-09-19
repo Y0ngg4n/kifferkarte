@@ -98,11 +98,15 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
       ref.read(updatingProvider.notifier).set(true);
       await ref.read(poiProvider.notifier).getPois(ref, _cacheStore);
       await ref.read(wayProvider.notifier).getWays(ref, _cacheStore);
+      await ref.read(cannabisZonesProvider.notifier).getZones(ref, _cacheStore);
       var pois = await ref.read(poiProvider.notifier).getState();
       var ways = await ref.read(wayProvider.notifier).getState();
+      var cannabisZones =
+          await ref.read(cannabisZonesProvider.notifier).getState();
       getPoiMarker(pois);
       getCircles(pois);
       getWays(ways);
+      getCannabisZones(cannabisZones);
       getBuildings();
       ref.read(poiProvider.notifier).set(Overpass.mapBuildingsToPoi(
           ref.read(buildingProvider.notifier).getState(),
@@ -122,6 +126,34 @@ class _MapWidgetState extends ConsumerState<MapWidget> {
                   ? Colors.green.withOpacity(0.5)
                   : Colors.yellow.withOpacity(0.5),
               isFilled: true))
+          .toList();
+    });
+  }
+
+  void getCannabisZones(List<CannabisZone> elements) {
+    setState(() {
+      polys += elements
+          .where((element) => element.boundaries.isNotEmpty)
+          .map((e) => Polygon(
+              points: e.boundaries,
+              color: Colors.red.withOpacity(0.25),
+              isFilled: true))
+          .toList();
+      marker += elements
+          .where((element) =>
+              element.boundaries.isEmpty && element.poiElement != null)
+          .map((e) => Marker(
+                // Experimentation
+                // anchorPos: AnchorPos.exactly(Anchor(40, 30)),
+                point: LatLng(e.poiElement!.lat!, e.poiElement!.lon!),
+                width: 80,
+                height: 80,
+                child: Icon(
+                  Icons.location_off,
+                  size: 25,
+                  color: Colors.red,
+                ),
+              ))
           .toList();
     });
   }

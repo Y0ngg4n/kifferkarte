@@ -189,6 +189,26 @@ class Overpass {
     return await cachedPostRequest(cacheStore, body);
   }
 
+  static Future<OverpassResponse?> getCannabisZonesInRadius(
+      LatLng? position, int radius, CacheStore? cacheStore) async {
+    if (position == null) return null;
+    String body = "[out:json][timeout:20][maxsize:536870912];\n";
+    body +=
+        "nw[\"smoking:cannabis\"=\"no\"](around:${radius},${position.latitude},${position.longitude});";
+    body += "(._;>;);out body;";
+    return await cachedPostRequest(cacheStore, body);
+  }
+
+  static Future<OverpassResponse?> getCannabisZonesInBounds(
+      LatLngBounds? latLngBounds, CacheStore? cacheStore) async {
+    if (latLngBounds == null) return null;
+    String body = "[out:json][timeout:20][maxsize:536870912];\n";
+    body +=
+        "nw[\"smoking:cannabis\"=\"no\"](${latLngBounds.south}, ${latLngBounds.west},${latLngBounds.north}, ${latLngBounds.east});";
+    body += "(._;>;);out body;";
+    return await cachedPostRequest(cacheStore, body);
+  }
+
   static Future<OverpassResponse?> getBuildingBoundariesInBounds(
       LatLngBounds? latLngBounds,
       LatLng position,
@@ -222,6 +242,14 @@ class Way {
   List<LatLng> boundaries;
 
   Way(this.id, this.boundaries);
+}
+
+class CannabisZone {
+  int id;
+  PoiElement? poiElement;
+  List<LatLng> boundaries;
+
+  CannabisZone(this.id, this.poiElement, this.boundaries);
 }
 
 class OverpassResponse {

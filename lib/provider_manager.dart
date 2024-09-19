@@ -116,6 +116,67 @@ class WayNotifier extends StateNotifier<List<Way>> {
   getState() => state;
 }
 
+class CannabisZoneNotifier extends StateNotifier<List<CannabisZone>> {
+  CannabisZoneNotifier() : super([]);
+
+  void init() {
+    state = [];
+  }
+
+  Future<void> getZones(WidgetRef ref, CacheStore? cacheStore) async {
+    OverpassResponse? overpassResponse;
+    try {
+      if (mapController.camera.zoom < 13) {
+        Position? position = ref.read(lastPositionProvider.notifier).getState();
+        if (position != null) {
+          overpassResponse = await Overpass.getCannabisZonesInRadius(
+              LatLng(position.latitude, position.longitude),
+              radius.toInt() * 3,
+              cacheStore);
+        } else {
+          overpassResponse = await Overpass.getCannabisZonesInRadius(
+              mapController.camera.center, radius.toInt() * 3, cacheStore);
+        }
+      } else {
+        overpassResponse = await Overpass.getCannabisZonesInBounds(
+            mapController.camera.visibleBounds, cacheStore);
+      }
+      if (overpassResponse != null) {
+        List<CannabisZone> zones = [];
+        for (PoiElement zone in overpassResponse.elements
+            .where((element) => element.type == "way")) {
+          List<LatLng> bounds = [];
+          if (zone.nodes != null) {
+            for (int node in zone.nodes!) {
+              bounds.addAll(overpassResponse.elements
+                  .where((element) => element.id == node)
+                  .map((e) => LatLng(e.lat!, e.lon!))
+                  .toList());
+            }
+          }
+          zones.add(CannabisZone(zone.id, zone, bounds));
+        }
+
+        for (PoiElement zone in overpassResponse.elements
+            .where((element) => element.type != "way")) {
+          zones.add(CannabisZone(zone.id, zone, []));
+        }
+        state = zones;
+      }
+    } on Exception {
+      ScaffoldMessenger.of(ref.context).showSnackBar(const SnackBar(
+          content: Text(
+              "Konnte die Overpass API nicht erreichen. Überprüfe deine Internetverbindung oder versuche es zu einem späteren Zeitpunkt erneut")));
+    }
+  }
+
+  void set(List<CannabisZone> zones) {
+    state = zones;
+  }
+
+  getState() => state;
+}
+
 class InCircleNotifier extends StateNotifier<bool> {
   InCircleNotifier() : super(true);
 
@@ -235,6 +296,11 @@ final poiProvider = StateNotifierProvider<PoiNotifier, List<Poi>>((ref) {
 
 final wayProvider = StateNotifierProvider<WayNotifier, List<Way>>((ref) {
   return WayNotifier();
+});
+
+final cannabisZonesProvider =
+    StateNotifierProvider<CannabisZoneNotifier, List<CannabisZone>>((ref) {
+  return CannabisZoneNotifier();
 });
 final inCircleProvider = StateNotifierProvider<InCircleNotifier, bool>((ref) {
   return InCircleNotifier();
